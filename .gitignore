@@ -1,0 +1,11 @@
+### OSX ###
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+### Xcode ###
+*.xcodeproj
+
+### OpenFrameworks ###
+bin/
