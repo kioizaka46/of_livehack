@@ -9,3 +9,4 @@ Icon
 
 ### OpenFrameworks ###
 bin/
+!bin/data/popcones
