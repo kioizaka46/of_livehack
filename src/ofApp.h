@@ -1,16 +1,28 @@
 #pragma once
 #include "ofMain.h"
 #include "ofxBox2d.h"
+#include "ofxTrueTypeFontUC.h"
 
 // ------------------------------------------------- a simple extended box2d circle
 class CustomParticle : public ofxBox2dCircle {
     
 public:
-    CustomParticle() {
+    CustomParticle(vector<ofImage> images, string txt) {
+        imgs = images;
+        text = txt;
+        font.load("SmartFontUI.ttf", 50, true, true);
+        bake_level = ofRandomuf();
+        image_count = images.size();
     }
+    // openframeworks obj
     ofColor color;
-    ofImage img;
-    ofTrueTypeFont font;
+    vector<ofImage> imgs;
+    ofxTrueTypeFontUC font;
+    
+    // param
+    float bake_level = 0.0; // 0.0~1.0
+    int image_count;
+    string text;
     
     void draw() {
         float radius = getRadius();
@@ -18,13 +30,14 @@ public:
         glPushMatrix();
         glTranslatef(getPosition().x, getPosition().y, 0);
         
-        ofSetColor(color.r, color.g, color.b);
-        ofFill();
-        //ofDrawCircle(0, 0, radius);
-        img.load("3.png");
-        img.draw(0,0, radius);
-        //font.loadFont("Narrow.ttf", 42);
-        //font.drawString("Love", 0, 0);
+        int tmp_img_num = (int)image_count * bake_level;
+        
+//        ofFill();
+//        ofDrawCircle(0, 0, radius);
+        imgs[tmp_img_num].draw(-radius/2,-radius/2, radius*2, radius*2);
+        
+//        ofSetColor(0, 0, 0);
+//        font.drawString(text, 0, 0);
         
         glPopMatrix();
     }
@@ -33,7 +46,6 @@ public:
 class ofApp : public ofBaseApp {
     
 public:
-    
     void setup();
     void update();
     void draw();
@@ -48,10 +60,21 @@ public:
     
     bool bMouseForce;
     
-    ofxBox2d box2d;           // the box2d world
-    ofPolyline drawing;         // we draw with this first
-    ofxBox2dEdge edgeLine;        // the box2d edge/line shape (min 2 points)
-    vector <shared_ptr<ofxBox2dCircle> > circles;         // default box2d circles
-    vector <shared_ptr<ofxBox2dRect> >   boxes;           // default box2d rects
-    vector <shared_ptr<CustomParticle> > customParticles; // this is a custom particle the extends a cirlce
+    ofxBox2d box2d;
+    ofPolyline drawing;
+    ofxBox2dEdge edgeLine;
+    vector <shared_ptr<CustomParticle> > customParticles;
+    
+    ofImage image0;
+    ofImage image1;
+    vector <ofImage> images;
+    
+    float min_popcone_size = 20;
+    float max_popcone_size = 30;
+    
+    double dencity;
+    double bounce;
+    double friction;
+    double gravity;
+    double pop_power;
 };

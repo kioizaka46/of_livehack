@@ -1,2 +1,3 @@
+ofxBox2d
 ofxJSON
 ofxTrueTypeFontUC
