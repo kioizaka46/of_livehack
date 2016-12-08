@@ -30,14 +30,14 @@ public:
         glPushMatrix();
         glTranslatef(getPosition().x, getPosition().y, 0);
         
-        int tmp_img_num = (int)image_count * bake_level;
-        
-//        ofFill();
-//        ofDrawCircle(0, 0, radius);
-        imgs[tmp_img_num].draw(-radius/2,-radius/2, radius*2, radius*2);
-        
-//        ofSetColor(0, 0, 0);
-//        font.drawString(text, 0, 0);
+        int tmp_img_num = (int)(image_count + 1) * bake_level;
+        if (tmp_img_num == 0){
+            font.drawString(text, 0, 0);
+        } else if (tmp_img_num == 1) {
+            imgs[tmp_img_num - 1].draw(-radius/2,-radius/2, radius*2, radius*2);
+        } else {
+            imgs[tmp_img_num - 1].draw(-radius/2,-radius/2, radius*2, radius*2);
+        }
         
         glPopMatrix();
     }

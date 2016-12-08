@@ -14,7 +14,7 @@ void ofApp::setup() {
     dencity     = 0.1;
     bounce      = 0.3;
     friction    = 0.3;
-    gravity     = 50;
+    gravity     = 60;
     pop_power   = 200;
     
     ofSetVerticalSync(true);
