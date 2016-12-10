@@ -4,67 +4,59 @@
 #include "ofxTrueTypeFontUC.h"
 #include "ofxJSON.h"
 
-class CustomLylic;
-
-struct TextSymbol {
-    std::string text;
-    double start_time;
-    double end_time;
-    int size;
-    double pos_x;
-    double pos_y;
-    bool is_draw;
-};
-
 class CustomParticle : public ofxBox2dCircle {
+    public:
+        // param
+        ofColor color;
+        vector<ofImage> imgs;
+        ofxTrueTypeFontUC font;
+        float bake_level = 0.0; // 0.0~1.0
+        int image_count;
+        string text;
+        float start_time;
+        int font_size;
     
-public:
-    // param
-    ofColor color;
-    vector<ofImage> imgs;
-    ofxTrueTypeFontUC font;
-    float bake_level = 0.0; // 0.0~1.0
-    int image_count;
-    string text;
-    float start_time;
-        
-    CustomParticle(vector<ofImage> images, string txt, float st_time) {
+    CustomParticle(vector<ofImage> images, string txt, float st_time, int f_size) {
         imgs = images;
         text = txt;
-        font.load("SmartFontUI.ttf", 50, true, true);
-        //        bake_level = ofRandomuf();
-        bake_level = 0;
+        font_size = f_size;
+        font.load("yugothicbold.otf", font_size, true, true);
+        // bake_level = ofRandomuf();
+        bake_level = 0.0;
         image_count = images.size();
         start_time = st_time;
     }
-void draw() {
+    void draw() {
         float radius = getRadius();
+        float image_expand = 1.2;
         
         glPushMatrix();
         glTranslatef(getPosition().x, getPosition().y, 0);
         
+        glRotatef(getRotation(), 0, 0, 1.0f);
+        
         int tmp_img_num = (int)(image_count + 1) * bake_level;
         if (tmp_img_num == 0){
-            ofSetColor(255,255,255);
-            font.drawString(text, 0, 0);
+            ofSetColor(0,0,0);
+            font.drawString(text, 0 - (font_size * 0.55), 0 + (font_size * 0.5));
         } else if (tmp_img_num == 1) {
             ofSetColor(255,255,255);
-            imgs[tmp_img_num - 1].draw(-radius/2,-radius/2, radius*2, radius*2);
+            imgs[tmp_img_num - 1].draw(0 - (font_size * 0.55), 0 - (font_size * 0.5), font_size * image_expand, font_size * image_expand);
         } else {
             ofSetColor(255,255,255);
-            imgs[tmp_img_num - 1].draw(-radius/2,-radius/2, radius*2, radius*2);
+            imgs[tmp_img_num - 1].draw(0 - (font_size * image_expand *  0.55), 0 - (font_size * image_expand * 0.5), font_size * image_expand, font_size * image_expand);
         }
+        
+        // --------- Debug only---------
+        // ofSetColor(155,155,155);
+        // ofDrawCircle(0, 0, radius);
+        // -----------------------------
         
         glPopMatrix();
     }
 };
-
-
-// ------------------------------------------------- a simple extended box2d circle
-
 // -------------------------------------------------
 class ofApp : public ofBaseApp {
-    
 public:
     void setup();
     void update();
@@ -78,35 +70,42 @@ public:
     void mouseReleased(int x, int y, int button);
     void resized(int w, int h);
     
-    bool bMouseForce;
+    // my method
+    vector<shared_ptr<CustomParticle>> getLineObj(int line_index);
     
     // sounds
     ofSoundPlayer music;
     float synthPosition;
+    float margin_time;
     
     // io
-    ofxJSONElement sync_lylic_json;
+    ofxJSONElement sync_lyric_json;
     ofxTrueTypeFontUC font;
-    
-    // lyrics
-    std::vector<TextSymbol> text_symbols;
-    string view_lylic;
+    int font_size;
     
     // animation
     double drop_point_x;
     double drop_point_y;
     double start_point_x;
     double start_point_y;
+    float radius_fix_pram;
+    
+    // viewer
+    int now_lyric_line;
+    int loaded_line_head;
+    int preload_number;
+    int word_margin;
+    
+    vector <shared_ptr<CustomParticle> > custom_particles;
+    vector<shared_ptr<CustomParticle> > tmp_line;
+    
+    vector<vector<shared_ptr<CustomParticle>> > buffering_particles;
+    vector<vector<shared_ptr<CustomParticle>> > viewable_particles;
     
     ofxBox2d box2d;
     ofPolyline drawing;
     ofxBox2dEdge edgeLine;
-    vector <shared_ptr<CustomParticle> > customParticles;
-    vector<shared_ptr<CustomParticle> > tmp_line;
-    vector<vector<shared_ptr<CustomParticle>> > lylic;
     
-    ofImage image0;
-    ofImage image1;
     vector <ofImage> images;
     
     float min_popcone_size = 20;
