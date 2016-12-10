@@ -3,7 +3,6 @@
 #include "ofxBox2d.h"
 #include "ofxTrueTypeFontUC.h"
 #include "ofxOpenCv.h"
-#include <time.h>
 
 #define _USE_LIVE_VIDEO	
 
@@ -61,7 +60,7 @@ public:
     void mousePressed(int x, int y, int button);
     void mouseReleased(int x, int y, int button);
     void resized(int w, int h);
-    void jumpPopcones();
+    
     
     bool bMouseForce;
     
@@ -93,11 +92,16 @@ public:
     ofxCvColorImage			colorImg;
     ofxCvGrayscaleImage 	grayImage;
     ofxCvGrayscaleImage 	grayBg;
-    
     ofxCvGrayscaleImage 	grayDiff;
-    
-    
     ofxCvContourFinder 	contourFinder;
+    ofxCvContourFinder 	lastContourFinder;
+    
+    int motionVector(ofxCvContourFinder const& contourFinder,ofxCvContourFinder const& lastContourFinder);
+    vector<pair<double,double> > getHolePoints(ofxCvContourFinder const& contourFinder);
+    bool isSameMotion(pair<double,double> point,pair<double,double> lastPoint);
+    double getDistance(pair<double,double> point,pair<double,double> lastPoint);
+    int motionIndex(pair<double,double> point,pair<double,double> lastPoint);
+    void jumpPopcones(int d);
     
     int 				threshold;
     bool				bLearnBakground;
@@ -105,5 +109,7 @@ public:
     float               height;
     double              motionCount = 0;
     int                 lastJumpTime = 0;
+    int                 drawCount = 0;
+    const double INF = (1 << 27);
     
 };
