@@ -133,7 +133,7 @@ void ofApp::keyPressed(int key) {
         customParticles.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "")));
         CustomParticle * p = customParticles.back().get();
         
-//        p->setPhysics(dencity, bounce, friction);
+        p->setPhysics(dencity, bounce, friction);
         p->setup(box2d.getWorld(), mouseX, mouseY, r);
     }
     if (key == 'a') {
