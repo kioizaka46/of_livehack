@@ -4,6 +4,8 @@
 #include "ofxTrueTypeFontUC.h"
 #include "ofxJSON.h"
 
+class CustomLylic;
+
 struct TextSymbol {
     std::string text;
     double start_time;
@@ -14,28 +16,17 @@ struct TextSymbol {
     bool is_draw;
 };
 
-class CustomCircle : public ofxBox2dCircle {
-public:
-    CustomCircle();
-    void update(); // refresh
-    float counter; //count
-    float phase; // init
-    int lifeTime; // life time
-    bool dead;// isDead
-    
-};
-
-
-// ------------------------------------------------- a simple extended box2d circle
 class CustomParticle : public ofxBox2dCircle {
     
 public:
-    CustomParticle(vector<ofImage> images, string txt) {
+    CustomParticle(vector<ofImage> images, string txt, float st_time) {
         imgs = images;
         text = txt;
-        font.load("SmartFontUI.ttf", 5, true, true);
-        bake_level = ofRandomuf();
+        font.load("SmartFontUI.ttf", 50, true, true);
+//        bake_level = ofRandomuf();
+        bake_level = 0;
         image_count = images.size();
+        start_time = st_time;
     }
     // openframeworks obj
     ofColor color;
@@ -46,6 +37,7 @@ public:
     float bake_level = 0.0; // 0.0~1.0
     int image_count;
     string text;
+    float start_time;
     
     void draw() {
         float radius = getRadius();
@@ -65,6 +57,10 @@ public:
         glPopMatrix();
     }
 };
+
+
+// ------------------------------------------------- a simple extended box2d circle
+
 // -------------------------------------------------
 class ofApp : public ofBaseApp {
     
@@ -105,6 +101,8 @@ public:
     ofPolyline drawing;
     ofxBox2dEdge edgeLine;
     vector <shared_ptr<CustomParticle> > customParticles;
+    vector<shared_ptr<CustomParticle> > tmp_line;
+    vector<vector<shared_ptr<CustomParticle>> > lylic;
     
     ofImage image0;
     ofImage image1;

@@ -1,23 +1,5 @@
 #include "ofApp.h"
 
-CustomCircle::CustomCircle() {
-    counter = 0;
-    //phase = ofRandom(0, PI*2);
-    lifeTime = 3;
-    //生死の判定
-    dead = false;
-}
-
-void CustomCircle::update()
-{
-    if (counter > lifeTime) {
-        dead = true;
-    }
-    //年齢を追加
-    counter++;
-    printf("counter = %f", counter);
-}
-
 //--------------------------------------------------------------
 void ofApp::setup() {
     // load images
@@ -51,7 +33,7 @@ void ofApp::setup() {
     music.load("keyaki_silent_majority.mp3");
     music.setMultiPlay(true);
     
-    font.loadFont("SmartFontUI.ttf", 100, true, true);
+    font.loadFont("SmartFontUI.ttf", 50, true, true);
     std::string file = "sync_lylic_silent_majority.json";
     
     drop_point_x = 100.0;
@@ -61,23 +43,31 @@ void ofApp::setup() {
     
     bool parsingSuccessful = sync_lylic_json.open(file);
     
+    int count = 0;
     if (parsingSuccessful){
         for(int i=0; i < sync_lylic_json["lines"].size(); i++){
-            TextSymbol ts;
-            ts.size = 10;
-            ts.start_time = sync_lylic_json["lines"][i]["time"].asDouble();
-            ts.pos_x = start_point_x;
-            ts.pos_y = start_point_y;
-            ts.is_draw = false;
-            string tmp_str = "";
-            std::array<string, 20> tmp_str_arr{""};
             for(int j=0; j < sync_lylic_json["lines"][i]["words"].size(); j++){
-                tmp_str += sync_lylic_json["lines"][i]["words"][j]["string"].asString();
-                tmp_str_arr[j] = sync_lylic_json["lines"][i]["words"][j]["string"].asString();
+                TextSymbol ts;
+                ts.size = 10;
+                ts.start_time = sync_lylic_json["lines"][i]["time"].asDouble();
+                ts.pos_x = start_point_x;
+                ts.pos_y = start_point_y;
+                ts.is_draw = false;
+                ts.text = sync_lylic_json["lines"][i]["words"][j]["string"].asString();
+                tmp_line.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, ts.text, ts.start_time)));
+                count++;
+//                ofLogNotice() << count;
+                text_symbols.push_back(ts);
             }
-            ts.text = tmp_str;
-            ofLogNotice() << tmp_str;
-            text_symbols.push_back(ts);
+            lylic.push_back(tmp_line);
+            if (count > 100) {
+                break;
+            }
+        }
+        for(int i = 0; i< lylic.size(); i++){
+            for(int j = 0; j < lylic[i].size(); j++){
+                lylic[i][j]->setup(box2d.getWorld(), 100+j*50, 200, 15);
+            }
         }
     }else{
         ofLogError("ofApp::setup")  << "Failed to parse JSON" << endl;
@@ -111,26 +101,25 @@ void ofApp::draw() {
     ofFill();
     string tmp_str = "";
     float music_pos = music.getPositionMS();
-    for(int i = 0; i< text_symbols.size(); i++){
-        if (music_pos > text_symbols[i].start_time) {
-            tmp_str = text_symbols[i].text;
+//    for(int i = 0; i< text_symbols.size(); i++){
+//        if (music_pos > text_symbols[i].start_time) {
+//            tmp_str = text_symbols[i].text;
+//        }
+//    }
+    for(int i = 0; i< lylic.size(); i++){
+        for(int j = 0; j < lylic[i].size(); j++){
+            if (music_pos > lylic[i][j]->start_time) {
+                lylic[i][j]->draw();
+            }
         }
     }
-    font.drawString(tmp_str, ofGetWidth()/2 - 300, 400); //表示場所は後で考えます
-    
-    float r = ofRandom(min_popcone_size, max_popcone_size);
-    customParticles.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "s")));
-    CustomParticle * p = customParticles.back().get();
-    
-    p->setPhysics(dencity, bounce, friction);
-    p->setup(box2d.getWorld(), mouseX, mouseY, r);
+    font.drawString(tmp_str, ofGetWidth()/2 - 300, 400); //後で直します
 }
-
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
     if(key == 'c') {
         float r = ofRandom(min_popcone_size, max_popcone_size);
-        customParticles.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "")));
+        customParticles.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "", 0)));
         CustomParticle * p = customParticles.back().get();
         
         p->setPhysics(dencity, bounce, friction);
@@ -142,6 +131,18 @@ void ofApp::keyPressed(int key) {
             float vec_y = customParticles[i].get()->getPosition().y;
             customParticles[i].get()->addRepulsionForce(vec_x, vec_y + 50, pop_power);
         }
+    }
+    if (key == 'b') {
+        for (int i = 0; lylic[0].size(); i++) {
+            ofLogNotice() << lylic[0][i]->text;
+            lylic[0][i].get()->setPhysics(dencity, bounce, friction);
+            lylic[0][i].get()->setup(box2d.getWorld(), 100+1*50, 200, 15);
+        }
+//        for(int i = 0; i < lylic.size(); i++){
+//            for(int j = 0; j < lylic[i].size(); j++){
+//                lylic[i][j]->setPhysics(dencity, bounce, friction);
+//            }
+//        }
     }
 }
 
