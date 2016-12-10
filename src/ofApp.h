@@ -2,6 +2,29 @@
 #include "ofMain.h"
 #include "ofxBox2d.h"
 #include "ofxTrueTypeFontUC.h"
+#include "ofxJSON.h"
+
+struct TextSymbol {
+    std::string text;
+    double start_time;
+    double end_time;
+    int size;
+    double pos_x;
+    double pos_y;
+    bool is_draw;
+};
+
+class CustomCircle : public ofxBox2dCircle {
+public:
+    CustomCircle();
+    void update(); // refresh
+    float counter; //count
+    float phase; // init
+    int lifeTime; // life time
+    bool dead;// isDead
+    
+};
+
 
 // ------------------------------------------------- a simple extended box2d circle
 class CustomParticle : public ofxBox2dCircle {
@@ -59,6 +82,24 @@ public:
     void resized(int w, int h);
     
     bool bMouseForce;
+    
+    // sounds
+    ofSoundPlayer music;
+    float synthPosition;
+    
+    // io
+    ofxJSONElement sync_lylic_json;
+    ofxTrueTypeFontUC font;
+    
+    // lyrics
+    std::vector<TextSymbol> text_symbols;
+    string view_lylic;
+    
+    // animation
+    double drop_point_x;
+    double drop_point_y;
+    double start_point_x;
+    double start_point_y;
     
     ofxBox2d box2d;
     ofPolyline drawing;
