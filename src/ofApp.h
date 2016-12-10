@@ -19,27 +19,25 @@ struct TextSymbol {
 class CustomParticle : public ofxBox2dCircle {
     
 public:
-    CustomParticle(vector<ofImage> images, string txt, float st_time) {
-        imgs = images;
-        text = txt;
-        font.load("SmartFontUI.ttf", 50, true, true);
-//        bake_level = ofRandomuf();
-        bake_level = 0;
-        image_count = images.size();
-        start_time = st_time;
-    }
-    // openframeworks obj
+    // param
     ofColor color;
     vector<ofImage> imgs;
     ofxTrueTypeFontUC font;
-    
-    // param
     float bake_level = 0.0; // 0.0~1.0
     int image_count;
     string text;
     float start_time;
-    
-    void draw() {
+        
+    CustomParticle(vector<ofImage> images, string txt, float st_time) {
+        imgs = images;
+        text = txt;
+        font.load("SmartFontUI.ttf", 50, true, true);
+        //        bake_level = ofRandomuf();
+        bake_level = 0;
+        image_count = images.size();
+        start_time = st_time;
+    }
+void draw() {
         float radius = getRadius();
         
         glPushMatrix();
@@ -47,10 +45,13 @@ public:
         
         int tmp_img_num = (int)(image_count + 1) * bake_level;
         if (tmp_img_num == 0){
+            ofSetColor(255,255,255);
             font.drawString(text, 0, 0);
         } else if (tmp_img_num == 1) {
+            ofSetColor(255,255,255);
             imgs[tmp_img_num - 1].draw(-radius/2,-radius/2, radius*2, radius*2);
         } else {
+            ofSetColor(255,255,255);
             imgs[tmp_img_num - 1].draw(-radius/2,-radius/2, radius*2, radius*2);
         }
         

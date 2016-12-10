@@ -1,6 +1,5 @@
 #include "ofApp.h"
 
-//--------------------------------------------------------------
 void ofApp::setup() {
     // load images
     ofDirectory dir;
@@ -10,6 +9,7 @@ void ofApp::setup() {
         images.push_back(ofImage(dir.getPath(i)));
     }
     
+    // physic setting
     dencity     = 0.1;
     bounce      = 0.3;
     friction    = 0.3;
@@ -29,20 +29,19 @@ void ofApp::setup() {
     box2d.registerGrabbing();
     box2d.createBounds(0, 0, ofGetWidth(), ofGetHeight());
     
-    // write song
-    music.load("keyaki_silent_majority.mp3");
-    music.setMultiPlay(true);
-    
-    font.loadFont("SmartFontUI.ttf", 50, true, true);
-    std::string file = "sync_lylic_silent_majority.json";
-    
+    // draw setting
     drop_point_x = 100.0;
     drop_point_y = 350.0;
     start_point_x = 1024.0;
     start_point_y = 350.0;
     
-    bool parsingSuccessful = sync_lylic_json.open(file);
+    // load font
+    font.loadFont("SmartFontUI.ttf", 50, true, true);
+    std::string file = "sync_koi_hoshinogen.json";
     
+    
+    // parse json
+    bool parsingSuccessful = sync_lylic_json.open(file);
     int count = 0;
     if (parsingSuccessful){
         for(int i=0; i < sync_lylic_json["lines"].size(); i++){
@@ -72,8 +71,12 @@ void ofApp::setup() {
     }else{
         ofLogError("ofApp::setup")  << "Failed to parse JSON" << endl;
     }
+    
+    // music load and play
+    music.load("koi_hoshinogen.mp3");
+    music.setMultiPlay(true);
     music.play();
-    music.setPositionMS(20000);
+    music.setPositionMS(10000);
 
 }
 //--------------------------------------------------------------
@@ -91,14 +94,16 @@ void ofApp::update() {
     }
 }
 
-
-
 //--------------------------------------------------------------
 void ofApp::draw() {
+    // ポップコーンの表示
     for(int i=0; i<customParticles.size(); i++) {
         customParticles[i].get()->draw();
+        ofLogNotice() << customParticles[i].get()->getRotation();
     }
     ofFill();
+    
+    // 歌詞の表示
     string tmp_str = "";
     float music_pos = music.getPositionMS();
 //    for(int i = 0; i< text_symbols.size(); i++){
@@ -113,16 +118,16 @@ void ofApp::draw() {
             }
         }
     }
-    font.drawString(tmp_str, ofGetWidth()/2 - 300, 400); //後で直します
+    font.drawString(tmp_str, ofGetWidth()/2 - 300, 400); //表示場所は後で考えます
 }
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
     if(key == 'c') {
         float r = ofRandom(min_popcone_size, max_popcone_size);
-        customParticles.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "", 0)));
+        customParticles.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "あ", 0)));
         CustomParticle * p = customParticles.back().get();
         
-        p->setPhysics(dencity, bounce, friction);
+//        p->setPhysics(dencity, bounce, friction);
         p->setup(box2d.getWorld(), mouseX, mouseY, r);
     }
     if (key == 'a') {
