@@ -18,8 +18,9 @@ void ofApp::setup() {
     pop_power   = 200;
     
     ofSetVerticalSync(true);
-    ofBackgroundHex(0xfdefc2);
+    ofBackgroundHex(0xE7C1DA);
     ofSetLogLevel(OF_LOG_NOTICE);
+    ofEnableAlphaBlending();
     
     box2d.init();
     box2d.setGravity(0, gravity);
@@ -63,7 +64,10 @@ void ofApp::setup() {
         // setup position of box2dworld
         for(int i = 0; i< buffering_particles.size(); i++){
             for(int j = 0; j < buffering_particles[i].size(); j++){
-                buffering_particles[i][j].get()->setup(box2d.getWorld(), start_point_x + (j * font_size + word_margin), start_point_y, font_size * radius_fix_pram);
+                buffering_particles[i][j].get()->setup(box2d.getWorld(),
+                                                       (ofGetWidth() - buffering_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
+                                                       start_point_y,
+                                                       font_size * radius_fix_pram);
             }
         }
     } else {
@@ -99,7 +103,10 @@ void ofApp::update() {
         int tail_index_vp = viewable_particles.size() - 1;
         for(int i = 0; i < viewable_particles[tail_index_vp].size(); i++){
             viewable_particles[tail_index_vp][i].get()->setPhysics(dencity, bounce, friction);
-            viewable_particles[tail_index_vp][i].get()->setup(box2d.getWorld(), viewable_particles[tail_index_vp][i].get()->getPosition().x, viewable_particles[tail_index_vp][i].get()->getPosition().y + font_size, font_size * radius_fix_pram);
+            viewable_particles[tail_index_vp][i].get()->setup(box2d.getWorld(),
+                                                              viewable_particles[tail_index_vp][i].get()->getPosition().x ,
+                                                              viewable_particles[tail_index_vp][i].get()->getPosition().y + font_size,
+                                                              font_size * radius_fix_pram);
         }
         
         // next lyric line add viewable obj
@@ -116,7 +123,10 @@ void ofApp::update() {
         // setup position next lyric on buffering tail
         int tail_index_bp = buffering_particles.size() - 1;
         for(int i = 0; i < buffering_particles[tail_index_bp].size(); i++) {
-            buffering_particles[tail_index_bp][i].get()->setup(box2d.getWorld(), start_point_x + (i * font_size + word_margin), start_point_y, font_size * radius_fix_pram);
+            buffering_particles[tail_index_bp][i].get()->setup(box2d.getWorld(),
+                                                               (ofGetWidth() - buffering_particles[tail_index_bp].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
+                                                               start_point_y,
+                                                               font_size * radius_fix_pram);
         }
         
         loaded_line_head++;
