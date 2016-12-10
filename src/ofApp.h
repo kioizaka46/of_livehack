@@ -2,6 +2,10 @@
 #include "ofMain.h"
 #include "ofxBox2d.h"
 #include "ofxTrueTypeFontUC.h"
+#include "ofxOpenCv.h"
+#include <time.h>
+
+#define _USE_LIVE_VIDEO	
 
 // ------------------------------------------------- a simple extended box2d circle
 class CustomParticle : public ofxBox2dCircle {
@@ -57,6 +61,7 @@ public:
     void mousePressed(int x, int y, int button);
     void mouseReleased(int x, int y, int button);
     void resized(int w, int h);
+    void jumpPopcones();
     
     bool bMouseForce;
     
@@ -77,4 +82,28 @@ public:
     double friction;
     double gravity;
     double pop_power;
+    
+    #ifdef _USE_LIVE_VIDEO
+		  ofVideoGrabber 		vidGrabber;
+    #else
+		  ofVideoPlayer 		vidPlayer;
+    #endif
+
+    
+    ofxCvColorImage			colorImg;
+    ofxCvGrayscaleImage 	grayImage;
+    ofxCvGrayscaleImage 	grayBg;
+    
+    ofxCvGrayscaleImage 	grayDiff;
+    
+    
+    ofxCvContourFinder 	contourFinder;
+    
+    int 				threshold;
+    bool				bLearnBakground;
+    float               width;
+    float               height;
+    double              motionCount = 0;
+    int                 lastJumpTime = 0;
+    
 };
