@@ -7,7 +7,7 @@ void ofApp::setup() {
     music_file_name     = "koi_hoshinogen.mp3";
     
     // draw setting
-    font_size           = 35;
+    font_size           = 45;
     word_margin         = 10;
     radius_fix_pram     = 0.6;
     margin_time         = 300;
@@ -20,9 +20,9 @@ void ofApp::setup() {
     now_lyric_line      = 0;
     
     // physic setting
-    dencity             = 0.1;
+    density             = 0.1;
     bounce              = 0.3;
-    friction            = 0.3;
+    friction            = 0.7;
     gravity             = 50;
     pop_power           = 200;
     
@@ -48,6 +48,8 @@ void ofApp::setup() {
     ofBackgroundHex(0xE7C1DA);
     ofSetLogLevel(OF_LOG_NOTICE);
     ofEnableAlphaBlending();
+    window_width = ofGetWidth();
+    window_height = ofGetHeight();
 
     // box2d setting
     box2d.init();
@@ -55,7 +57,7 @@ void ofApp::setup() {
     box2d.createGround();
     box2d.setFPS(30.0);
     box2d.registerGrabbing();
-    box2d.createBounds(0, 0, ofGetWidth(), ofGetHeight());
+    box2d.createBounds(0, 0, window_width, window_height);
     
     #ifdef _USE_LIVE_VIDEO
         vidGrabber.setVerbose(true);
@@ -65,9 +67,9 @@ void ofApp::setup() {
         vidPlayer.play();
         vidPlayer.setLoopState(OF_LOOP_NORMAL);
     #endif
-    
+
     // load font
-    font.loadFont(font_file_name, 25, true, true);
+    font.loadFont(font_file_name, font_size, true, true);
 
     // parse json and create obj
     std::string file = json_file_name;
@@ -116,7 +118,9 @@ vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
         double start_time = sync_lyric_json["lines"][line_index]["time"].asDouble();
         for(int i=0; i < sync_lyric_json["lines"][line_index]["words"].size(); i++){
             string word_str = sync_lyric_json["lines"][line_index]["words"][i]["string"].asString();
-            tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, word_str, start_time, font_size)));
+            if(word_str != " "){
+                tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, word_str, start_time, font_size)));
+            }
         }
     } else {
         ofLogError()  << "Not found Line " << line_index << endl;
@@ -132,7 +136,8 @@ void ofApp::update() {
         // set physics for now lyric line on viewable obj tail
         int tail_index_vp = viewable_particles.size() - 1;
         for(int i = 0; i < viewable_particles[tail_index_vp].size(); i++){
-            viewable_particles[tail_index_vp][i].get()->setPhysics(dencity, bounce, friction);
+            ofLogNotice() << viewable_particles[tail_index_vp][i].get()->alive;
+            viewable_particles[tail_index_vp][i].get()->setPhysics(density, bounce, friction);
             viewable_particles[tail_index_vp][i].get()->setup(box2d.getWorld(),
                                                               viewable_particles[tail_index_vp][i].get()->getPosition().x ,
                                                               viewable_particles[tail_index_vp][i].get()->getPosition().y + font_size,
@@ -158,6 +163,9 @@ void ofApp::update() {
                                                                start_point_y,
                                                                font_size * radius_fix_pram);
         }
+//        box2d.getWorld()->DestroyBody(box2d.getWorld()->GetBodyList());
+//        ofLogNotice() << box2d.getWorld()->GetBodyCount();
+        
         loaded_line_head++;
     }
     
@@ -195,6 +203,23 @@ void ofApp::update() {
         contourFinder.findContours(grayDiff, 20, (width*height)/3, 10, true);	// find holes
     }
     
+    // change box2d bound size if change window size
+    if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
+        // update buffering particles position
+        for(int i = 0; i < buffering_particles.size(); i++) {
+            for (int j = 0; j < buffering_particles[i].size(); j++) {
+                buffering_particles[i][j].get()->setup(box2d.getWorld(),
+                                                                   (ofGetWidth() - buffering_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
+                                                                   start_point_y,
+                                                                   font_size * radius_fix_pram);
+            }
+        }
+        
+        window_width = ofGetWidth();
+        window_height = ofGetHeight();
+        box2d.createBounds(0, 0, window_width, window_height);
+    }
+
     box2d.update();
     ofSoundUpdate();
 }
@@ -232,7 +257,7 @@ void ofApp::draw() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
     if (key == 'a') {
-        for(int i = 1; i < viewable_particles.size(); i++){
+        for(int i = 0; i < viewable_particles.size(); i++){
             for(int j = 0; j < viewable_particles[i].size(); j++){
                 float vec_x = viewable_particles[i][j].get()->getPosition().x;
                 float vec_y = viewable_particles[i][j].get()->getPosition().y;

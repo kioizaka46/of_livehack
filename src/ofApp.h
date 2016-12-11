@@ -44,6 +44,8 @@ public:
     int font_size;
 
     // animation
+    int window_width;
+    int window_height;
     double drop_point_x;
     double drop_point_y;
     double start_point_x;
@@ -71,7 +73,7 @@ public:
     float min_popcone_size = 20;
     float max_popcone_size = 30;
 
-    double dencity;
+    double density;
     double bounce;
     double friction;
     double gravity;
@@ -105,5 +107,4 @@ public:
     int number_of_object;
     
     const double INF = (1 << 27);
-    
 };
