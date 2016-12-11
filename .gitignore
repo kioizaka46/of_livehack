@@ -6,7 +6,9 @@ Icon
 
 ### Xcode ###
 *.xcodeproj
-*.xcuserstate
+!of_livehack.xcodeproj/project.pbxproj
+!of_livehack.xcodeproj/xcshareddata/*
+
 
 ### OpenFrameworks ###
 bin/
