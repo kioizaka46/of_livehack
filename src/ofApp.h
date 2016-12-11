@@ -8,6 +8,7 @@
 class CustomParticle : public ofxBox2dCircle {
     public:
         // param
+        string font_file_name = "yugothicbold.otf";
         ofColor color;
         vector<ofImage> imgs;
         ofxTrueTypeFontUC font;
@@ -22,8 +23,7 @@ class CustomParticle : public ofxBox2dCircle {
         imgs = images;
         text = txt;
         font_size = f_size;
-        font.load("yugothicbold.otf", font_size, true, true);
-//        bake_level = ofRandomuf();
+        font.load(font_file_name, font_size, true, true);
         bake_level = 0.0;
         image_count = images.size();
         start_time = st_time;
@@ -78,12 +78,15 @@ public:
     vector<shared_ptr<CustomParticle>> getLineObj(int line_index);
 
     // sounds
+    string music_file_name;
     ofSoundPlayer music;
     float synthPosition;
     float margin_time;
 
     // io
+    string json_file_name;
     ofxJSONElement sync_lyric_json;
+    string font_file_name;
     ofxTrueTypeFontUC font;
     int font_size;
 
