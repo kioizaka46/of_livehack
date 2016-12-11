@@ -3,6 +3,9 @@
 #include "ofMain.h"
 #include "ofxBox2d.h"
 #include "ofxTrueTypeFontUC.h"
+#include "ofxOpenCv.h"
+
+#define _USE_LIVE_VIDEO	
 #include "ofxJSON.h"
 
 class CustomParticle : public ofxBox2dCircle {
@@ -73,6 +76,9 @@ public:
     void mousePressed(int x, int y, int button);
     void mouseReleased(int x, int y, int button);
     void resized(int w, int h);
+    
+    bool bMouseForce;
+    
 
     // my method
     vector<shared_ptr<CustomParticle>> getLineObj(int line_index);
@@ -120,4 +126,35 @@ public:
     double friction;
     double gravity;
     double pop_power;
+    
+    #ifdef _USE_LIVE_VIDEO
+		  ofVideoGrabber 		vidGrabber;
+    #else
+		  ofVideoPlayer 		vidPlayer;
+    #endif
+
+    
+    ofxCvColorImage			colorImg;
+    ofxCvGrayscaleImage 	grayImage;
+    ofxCvGrayscaleImage 	grayBg;
+    ofxCvGrayscaleImage 	grayDiff;
+    ofxCvContourFinder 	contourFinder;
+    ofxCvContourFinder 	lastContourFinder;
+    
+    int motionVector(ofxCvContourFinder const& contourFinder,ofxCvContourFinder const& lastContourFinder);
+    vector<pair<double,double> > getHolePoints(ofxCvContourFinder const& contourFinder);
+    bool isSameMotion(pair<double,double> point,pair<double,double> lastPoint);
+    double getDistance(pair<double,double> point,pair<double,double> lastPoint);
+    int motionIndex(pair<double,double> point,pair<double,double> lastPoint);
+    void jumpPopcones(int d);
+    
+    int 				threshold;
+    bool				bLearnBakground;
+    float               width;
+    float               height;
+    double              motionCount = 0;
+    int                 lastJumpTime = 0;
+    int                 drawCount = 0;
+    const double INF = (1 << 27);
+    
 };
