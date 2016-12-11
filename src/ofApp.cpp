@@ -23,8 +23,17 @@ void ofApp::setup() {
     dencity             = 0.1;
     bounce              = 0.3;
     friction            = 0.3;
-    gravity             = 50;
+    gravity             = 40;
     pop_power           = 200;
+    
+    // motion tracking setting
+    width               = 320;
+    height              = 240;
+    bLearnBakground     = true;
+    threshold           = 80;
+    number_of_object    = 3;
+    diff_param          = 1;
+    tracking_interval   = 3;
     
     // load images
     ofDirectory dir;
@@ -44,10 +53,19 @@ void ofApp::setup() {
     box2d.init();
     box2d.setGravity(0, gravity);
     box2d.createGround();
-    box2d.setFPS(60.0);
+    box2d.setFPS(30.0);
     box2d.registerGrabbing();
     box2d.createBounds(0, 0, ofGetWidth(), ofGetHeight());
-
+    
+    #ifdef _USE_LIVE_VIDEO
+        vidGrabber.setVerbose(true);
+        vidGrabber.setup(320,240);
+    #else
+        vidPlayer.load("/path/to/veideo.mov");
+        vidPlayer.play();
+        vidPlayer.setLoopState(OF_LOOP_NORMAL);
+    #endif
+    
     // load font
     font.loadFont(font_file_name, 25, true, true);
 
@@ -59,6 +77,12 @@ void ofApp::setup() {
         // viewable particle initialize
         vector<shared_ptr<CustomParticle>> dummy_obj;
         dummy_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "", 0, font_size)));
+        for(int i = 0; i < dummy_obj.size(); i++){
+            dummy_obj[i].get()->setup(box2d.getWorld(),
+                                    ofGetWidth(),
+                                    start_point_y,
+                                    font_size * radius_fix_pram);
+        }
         viewable_particles.push_back(dummy_obj);
 
         // buffering
@@ -136,24 +160,76 @@ void ofApp::update() {
         }
         loaded_line_head++;
     }
+    
+    bool bNewFrame = false;
+    
+    #ifdef _USE_LIVE_VIDEO
+        vidGrabber.update();
+        bNewFrame = vidGrabber.isFrameNew();
+    #else
+        vidPlayer.update();
+        bNewFrame = vidPlayer.isFrameNew();
+    #endif
+    
+    if (bNewFrame){
+        
+    #ifdef _USE_LIVE_VIDEO
+        colorImg.setFromPixels(vidGrabber.getPixels());
+    #else
+        colorImg.setFromPixels(vidPlayer.getPixels());
+    #endif
+        
+        grayImage = colorImg;
+        
+        if (bLearnBakground == true){
+            grayBg = grayImage;		// the = sign copys the pixels from grayImage into grayBg (operator overloading)
+            bLearnBakground = false;
+        }
+        
+        // take the abs value of the difference between background and incoming and then threshold:
+        grayDiff.absDiff(grayBg, grayImage);
+        grayDiff.threshold(threshold);
+        
+        // find contours which are between the size of 20 pixels and 1/3 the w*h pixels.
+        // also, find holes is set to true so we will get interior contours as well....
+        contourFinder.findContours(grayDiff, 20, (width*height)/3, 10, true);	// find holes
+    }
+    
     box2d.update();
     ofSoundUpdate();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-    // draw popcones
-    for(int i=0; i<custom_particles.size(); i++) {
-        custom_particles[i].get()->draw();
-//        ofLogNotice() << custom_particles[i].get()->getRotation();
-    }
     // draw viewable lyrics
     for(int i = 0; i < viewable_particles.size(); i++){
         for(int j = 0; j < viewable_particles[i].size(); j++){
             viewable_particles[i][j]->draw();
         }
     }
+    
+    for (int i = 0; i < contourFinder.nBlobs; i++){
+        if(contourFinder.blobs[i].hole){
+            bLearnBakground = true;
+        }
+    }
+    
+    motionCount = contourFinder.nBlobs;
+    
+    drawCount++;
+    // judge jump motion
+    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs-lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval) {
+        lastJumpTime = time(NULL);
+        int d = motionVector(contourFinder,lastContourFinder);
+        jumpPopcones(d);
+
+    }
+    
+    if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
+    
+    ofFill();
 }
+
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
     if (key == 'a') {
@@ -196,3 +272,42 @@ void ofApp::mouseReleased(int x, int y, int button) {
 void ofApp::resized(int w, int h){
 
 }
+
+//--------------------------------------------------------------
+void ofApp::jumpPopcones(int d) {
+    
+    double dx = 0,dy = 0;
+    // temporary left and right are valid.
+    switch (d) {
+        case 1:
+            // nothing move
+//            cout << "down" << endl;
+            dy = 50;
+            break;
+        case 2:
+//            cout << "up" << endl;
+            dy = -50;
+            break;
+        case 3:
+//            cout << "left" << endl;
+            dx = 50;
+            break;
+        case 4:
+//            cout << "right" << endl;
+            dx = -50;
+            break;
+        default:
+            break;
+    }
+    
+    // Pop lyrics and popcones
+    for(int i = 0; i < viewable_particles.size(); i++){
+        for(int j = 0; j < viewable_particles[i].size(); j++){
+            float vec_x = viewable_particles[i][j].get()->getPosition().x;
+            float vec_y = viewable_particles[i][j].get()->getPosition().y;
+            viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
+        }
+    }
+    
+}
+
