@@ -20,9 +20,9 @@ void ofApp::setup() {
     now_lyric_line      = 0;
     
     // physic setting
-    dencity             = 0.1;
+    density             = 0.1;
     bounce              = 0.3;
-    friction            = 0.3;
+    friction            = 0.9;
     gravity             = 50;
     pop_power           = 200;
     
@@ -108,7 +108,7 @@ void ofApp::update() {
         // set physics for now lyric line on viewable obj tail
         int tail_index_vp = viewable_particles.size() - 1;
         for(int i = 0; i < viewable_particles[tail_index_vp].size(); i++){
-            viewable_particles[tail_index_vp][i].get()->setPhysics(dencity, bounce, friction);
+            viewable_particles[tail_index_vp][i].get()->setPhysics(density, bounce, friction);
             viewable_particles[tail_index_vp][i].get()->setup(box2d.getWorld(),
                                                               viewable_particles[tail_index_vp][i].get()->getPosition().x ,
                                                               viewable_particles[tail_index_vp][i].get()->getPosition().y + font_size,
@@ -136,6 +136,7 @@ void ofApp::update() {
         }
         loaded_line_head++;
     }
+    box2d.createGround(0, ofGetHeight(), ofGetWidth(), ofGetHeight());
     box2d.update();
     ofSoundUpdate();
 }
@@ -157,7 +158,7 @@ void ofApp::draw() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
     if (key == 'a') {
-        for(int i = 1; i < viewable_particles.size(); i++){
+        for(int i = 0; i < viewable_particles.size(); i++){
             for(int j = 0; j < viewable_particles[i].size(); j++){
                 float vec_x = viewable_particles[i][j].get()->getPosition().x;
                 float vec_y = viewable_particles[i][j].get()->getPosition().y;

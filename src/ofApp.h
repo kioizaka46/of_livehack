@@ -52,8 +52,8 @@ class CustomParticle : public ofxBox2dCircle {
         }
 
         // --------- Debug only---------
-        // ofSetColor(155,155,155);
-        // ofDrawCircle(0, 0, radius);
+        ofSetColor(155,155,155);
+        ofDrawCircle(0, 0, radius);
         // -----------------------------
 
         glPopMatrix();
@@ -118,7 +118,7 @@ public:
     float min_popcone_size = 20;
     float max_popcone_size = 30;
 
-    double dencity;
+    double density;
     double bounce;
     double friction;
     double gravity;
