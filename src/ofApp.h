@@ -4,64 +4,10 @@
 #include "ofxBox2d.h"
 #include "ofxTrueTypeFontUC.h"
 #include "ofxOpenCv.h"
-
+#include "CustomParticle.h"
 #define _USE_LIVE_VIDEO	
 #include "ofxJSON.h"
 
-class CustomParticle : public ofxBox2dCircle {
-    public:
-        // param
-        ofColor color;
-        vector<ofImage> imgs;
-        ofxTrueTypeFontUC font;
-        float bake_level = 0.0; // 0.0~1.0
-        int image_count;
-        string text;
-        float start_time;
-        int font_size;
-        float opacity;
-
-    CustomParticle(vector<ofImage> images, string txt, float st_time, int f_size) {
-        imgs = images;
-        text = txt;
-        font_size = f_size;
-        font.load("yugothicbold.otf", font_size, true, true);
-//        bake_level = ofRandomuf();
-        bake_level = 0.0;
-        image_count = images.size();
-        start_time = st_time;
-        opacity = 1.0;
-    }
-    void draw() {
-        float radius = getRadius();
-        float image_expand = 1.2;
-
-        glPushMatrix();
-        glTranslatef(getPosition().x, getPosition().y, 0);
-
-
-        glRotatef(getRotation(), 0, 0, 1.0f);
-
-        int tmp_img_num = (int)(image_count + 1) * bake_level;
-        if (tmp_img_num == 0){
-            ofSetColor(0,0,0,255*opacity);
-            font.drawString(text, 0 - (font_size * 0.5), 0 + (font_size * 0.5));
-        } else if (tmp_img_num == 1) {
-            ofSetColor(255,255,255,255*opacity);
-            imgs[tmp_img_num - 1].draw(0 - (font_size * 0.5), 0 - (font_size * 0.5), font_size * image_expand, font_size * image_expand);
-        } else {
-            ofSetColor(255,255,255,255*opacity);
-            imgs[tmp_img_num - 1].draw(0 - (font_size * image_expand *  0.5), 0 - (font_size * image_expand * 0.5), font_size * image_expand, font_size * image_expand);
-        }
-
-        // --------- Debug only---------
-        // ofSetColor(155,155,155);
-        // ofDrawCircle(0, 0, radius);
-        // -----------------------------
-
-        glPopMatrix();
-    }
-};
 // -------------------------------------------------
 class ofApp : public ofBaseApp {
 public:

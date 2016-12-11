@@ -68,6 +68,12 @@ void ofApp::setup() {
         // viewable particle initialize
         vector<shared_ptr<CustomParticle>> dummy_obj;
         dummy_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "", 0, font_size)));
+        for(int i = 0; i < dummy_obj.size(); i++){
+            dummy_obj[i].get()->setup(box2d.getWorld(),
+                                    ofGetWidth(),
+                                    start_point_y,
+                                    font_size * radius_fix_pram);
+        }
         viewable_particles.push_back(dummy_obj);
 
         // buffering
@@ -220,13 +226,65 @@ void ofApp::draw() {
     ofFill();
 }
 
+
+
+//    font.drawString(tmp_str, ofGetWidth()/2 - 300, 400); //表示場所は後で考えます
+//--------------------------------------------------------------
+void ofApp::keyPressed(int key) {
+    if(key == 'c') {
+        float r = ofRandom(min_popcone_size, max_popcone_size);
+        custom_particles.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "あ", 0, font_size)));
+        CustomParticle * p = custom_particles.back().get();
+//        p->setPhysics(dencity, bounce, friction);
+        p->setup(box2d.getWorld(), mouseX, mouseY, r);
+    }
+    if (key == 'a') {
+        jumpPopcones(3);
+        for(int i = 0; i < custom_particles.size(); i++){
+            float vec_x = custom_particles[i].get()->getPosition().x;
+            float vec_y = custom_particles[i].get()->getPosition().y;
+            custom_particles[i].get()->addRepulsionForce(vec_x, vec_y + 50, pop_power);
+        }
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::keyReleased(int key) {
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseMoved(int x, int y) {
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseDragged(int x, int y, int button) {
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mousePressed(int x, int y, int button) {
+
+}
+
+//--------------------------------------------------------------
+void ofApp::mouseReleased(int x, int y, int button) {
+
+}
+
+//--------------------------------------------------------------
+void ofApp::resized(int w, int h){
+
+}
+
 vector<pair<double,double> > ofApp::getHolePoints(ofxCvContourFinder const& contourFinder) {
     
     vector<pair<double,double> > holePoints;
     
     for (int i = 0; i < contourFinder.nBlobs; i++){
         //if(contourFinder.blobs[i].hole){
-            holePoints.push_back(make_pair(contourFinder.blobs[i].centroid.x,contourFinder.blobs[i].centroid.y));
+        holePoints.push_back(make_pair(contourFinder.blobs[i].centroid.x,contourFinder.blobs[i].centroid.y));
         //}
     }
     
@@ -246,7 +304,7 @@ double ofApp::getDistance(pair<double,double> point,pair<double,double> lastPoin
 
 int ofApp::motionIndex(pair<double,double> point,pair<double,double> lastPoint) {
     
-
+    
     //
     if(point.first-lastPoint.first > 0) return 3;
     //
@@ -255,7 +313,7 @@ int ofApp::motionIndex(pair<double,double> point,pair<double,double> lastPoint) 
 }
 
 int ofApp::motionVector(ofxCvContourFinder const& contourFinder,ofxCvContourFinder const& lastContourFinder) {
-
+    
     vector<pair<double,double> > holePoints = getHolePoints(contourFinder);
     vector<pair<double,double> > lastHolePoints = getHolePoints(lastContourFinder);
     
@@ -327,52 +385,3 @@ void ofApp::jumpPopcones(int d) {
     
 }
 
-//    font.drawString(tmp_str, ofGetWidth()/2 - 300, 400); //表示場所は後で考えます
-//--------------------------------------------------------------
-void ofApp::keyPressed(int key) {
-    if(key == 'c') {
-        float r = ofRandom(min_popcone_size, max_popcone_size);
-        custom_particles.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "あ", 0, font_size)));
-        CustomParticle * p = custom_particles.back().get();
-//        p->setPhysics(dencity, bounce, friction);
-        p->setup(box2d.getWorld(), mouseX, mouseY, r);
-    }
-    if (key == 'a') {
-        jumpPopcones(3);
-        for(int i = 0; i < custom_particles.size(); i++){
-            float vec_x = custom_particles[i].get()->getPosition().x;
-            float vec_y = custom_particles[i].get()->getPosition().y;
-            custom_particles[i].get()->addRepulsionForce(vec_x, vec_y + 50, pop_power);
-        }
-    }
-}
-
-//--------------------------------------------------------------
-void ofApp::keyReleased(int key) {
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseMoved(int x, int y) {
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseDragged(int x, int y, int button) {
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mousePressed(int x, int y, int button) {
-
-}
-
-//--------------------------------------------------------------
-void ofApp::mouseReleased(int x, int y, int button) {
-
-}
-
-//--------------------------------------------------------------
-void ofApp::resized(int w, int h){
-
-}
