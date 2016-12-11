@@ -9,7 +9,6 @@ Icon
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/*
 
-
 ### OpenFrameworks ###
 bin/
 !bin/data/popcones
