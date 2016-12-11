@@ -23,7 +23,7 @@ void ofApp::setup() {
     dencity             = 0.1;
     bounce              = 0.3;
     friction            = 0.3;
-    gravity             = 40;
+    gravity             = 50;
     pop_power           = 200;
     
     // motion tracking setting
@@ -206,8 +206,7 @@ void ofApp::draw() {
         for(int j = 0; j < viewable_particles[i].size(); j++){
             viewable_particles[i][j]->draw();
         }
-    }
-    
+    }    
     for (int i = 0; i < contourFinder.nBlobs; i++){
         if(contourFinder.blobs[i].hole){
             bLearnBakground = true;
@@ -260,7 +259,7 @@ void ofApp::mouseDragged(int x, int y, int button) {
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {
-
+   
 }
 
 //--------------------------------------------------------------
@@ -284,7 +283,7 @@ void ofApp::jumpPopcones(int d) {
 //            cout << "down" << endl;
             dy = 50;
             break;
-        case 2:
+        case 2
 //            cout << "up" << endl;
             dy = -50;
             break;
@@ -308,6 +307,4 @@ void ofApp::jumpPopcones(int d) {
             viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
         }
     }
-    
 }
-
