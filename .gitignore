@@ -1,4 +1,4 @@
-### OSX ###
+#### OSX ####
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -6,6 +6,7 @@ Icon
 
 ### Xcode ###
 *.xcodeproj
+*.xcuserstate
 
 ### OpenFrameworks ###
 bin/
