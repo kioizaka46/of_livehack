@@ -228,7 +228,6 @@ void ofApp::draw() {
 
 
 
-//    font.drawString(tmp_str, ofGetWidth()/2 - 300, 400); //表示場所は後で考えます
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
     if(key == 'c') {
@@ -278,23 +277,16 @@ void ofApp::resized(int w, int h){
 
 }
 
+/*
 vector<pair<double,double> > ofApp::getHolePoints(ofxCvContourFinder const& contourFinder) {
     
     vector<pair<double,double> > holePoints;
     
     for (int i = 0; i < contourFinder.nBlobs; i++){
-        //if(contourFinder.blobs[i].hole){
         holePoints.push_back(make_pair(contourFinder.blobs[i].centroid.x,contourFinder.blobs[i].centroid.y));
-        //}
     }
     
     return holePoints;
-}
-
-bool ofApp::isSameMotion(pair<double,double> point,pair<double,double> lastPoint) {
-    const double thresh_hold = 50;
-    double dist = (point.first-lastPoint.first)*(point.first-lastPoint.first) + (point.second-lastPoint.second)*(point.second-lastPoint.second);
-    return dist <= thresh_hold;
 }
 
 double ofApp::getDistance(pair<double,double> point,pair<double,double> lastPoint) {
@@ -304,10 +296,9 @@ double ofApp::getDistance(pair<double,double> point,pair<double,double> lastPoin
 
 int ofApp::motionIndex(pair<double,double> point,pair<double,double> lastPoint) {
     
-    
-    //
+    // left
     if(point.first-lastPoint.first > 0) return 3;
-    //
+    // right
     return 4;
     
 }
@@ -331,13 +322,13 @@ int ofApp::motionVector(ofxCvContourFinder const& contourFinder,ofxCvContourFind
         double mxDist = INF;
         int pairIdx = -1;
         for(int j = 0 ; j < lastHolePoints.size() ; j++) {
-            //if(!isSameMotion(holePoints[i], lastHolePoints[j])) continue;
             double dist = getDistance(holePoints[i],lastHolePoints[j]);
             if(mxDist > dist && dist > 0) {
                 mxDist = dist;
                 pairIdx = j;
             }
         }
+        // same motion threshold
         if(mxDist < 500) {
             int vIdx = motionIndex(holePoints[i],lastHolePoints[pairIdx]);
             motionVectorCnt[vIdx]++;
@@ -347,16 +338,17 @@ int ofApp::motionVector(ofxCvContourFinder const& contourFinder,ofxCvContourFind
     int mxVectorIdx = std::distance(motionVectorCnt.begin(), it);
     return mxVectorIdx;
     
-}
+}*/
 
 void ofApp::jumpPopcones(int d) {
     
     double dx = 0,dy = 0;
+    // temporary left and right are valid.
     switch (d) {
         case 1:
             // nothing move
             cout << "down" << endl;
-            //dy = 50;
+            dy = 50;
             break;
         case 2:
             cout << "up" << endl;
@@ -374,6 +366,7 @@ void ofApp::jumpPopcones(int d) {
             break;
     }
     
+    // Pop lyrics and popcones
     for(int i = 0; i < viewable_particles.size(); i++){
         for(int j = 0; j < viewable_particles[i].size(); j++){
             float vec_x = viewable_particles[i][j].get()->getPosition().x;
@@ -381,7 +374,6 @@ void ofApp::jumpPopcones(int d) {
             viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
         }
     }
-    
     
 }
 

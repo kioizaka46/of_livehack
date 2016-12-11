@@ -4,9 +4,10 @@
 #include "ofxBox2d.h"
 #include "ofxTrueTypeFontUC.h"
 #include "ofxOpenCv.h"
-#include "CustomParticle.h"
 #define _USE_LIVE_VIDEO	
 #include "ofxJSON.h"
+#include "CustomParticle.h"
+#include "Detection.h"
 
 // -------------------------------------------------
 class ofApp : public ofBaseApp {
@@ -79,19 +80,19 @@ public:
 		  ofVideoPlayer 		vidPlayer;
     #endif
 
-    
     ofxCvColorImage			colorImg;
     ofxCvGrayscaleImage 	grayImage;
     ofxCvGrayscaleImage 	grayBg;
     ofxCvGrayscaleImage 	grayDiff;
     ofxCvContourFinder 	contourFinder;
     ofxCvContourFinder 	lastContourFinder;
-    
+    /*
     int motionVector(ofxCvContourFinder const& contourFinder,ofxCvContourFinder const& lastContourFinder);
     vector<pair<double,double> > getHolePoints(ofxCvContourFinder const& contourFinder);
     bool isSameMotion(pair<double,double> point,pair<double,double> lastPoint);
     double getDistance(pair<double,double> point,pair<double,double> lastPoint);
     int motionIndex(pair<double,double> point,pair<double,double> lastPoint);
+     */
     void jumpPopcones(int d);
     
     int 				threshold;
