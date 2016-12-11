@@ -9239,6 +9239,110 @@
 				<key>sourceTree</key>
 				<string>SOURCE_ROOT</string>
 			</dict>
+			<key>A4C4530273712F8E9467E912</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Detection.hpp</string>
+				<key>path</key>
+				<string>src/Detection.hpp</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>FFA56E7B214A7C127F668073</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Detection.h</string>
+				<key>path</key>
+				<string>src/Detection.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>56B669349C9D77E558F2C511</key>
+			<dict>
+				<key>fileRef</key>
+				<string>E764D9CB826310EB7F340C20</string>
+				<key>isa</key>
+				<string>PBXBuildFile</string>
+			</dict>
+			<key>E764D9CB826310EB7F340C20</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.cpp.cpp</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>Detection.cpp</string>
+				<key>path</key>
+				<string>src/Detection.cpp</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>6B947CD0B6DAB08B5E577EFA</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>CustomParticle.hpp</string>
+				<key>path</key>
+				<string>src/CustomParticle.hpp</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>3C29CA0B3A65FF1EF9E8AED4</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.c.h</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>CustomParticle.h</string>
+				<key>path</key>
+				<string>src/CustomParticle.h</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
+			<key>8F8A2FAA2386CA842A928F12</key>
+			<dict>
+				<key>fileRef</key>
+				<string>A323E9C0C06FCAC1EDB2ED35</string>
+				<key>isa</key>
+				<string>PBXBuildFile</string>
+			</dict>
+			<key>A323E9C0C06FCAC1EDB2ED35</key>
+			<dict>
+				<key>explicitFileType</key>
+				<string>sourcecode.cpp.cpp</string>
+				<key>fileEncoding</key>
+				<string>30</string>
+				<key>isa</key>
+				<string>PBXFileReference</string>
+				<key>name</key>
+				<string>CustomParticle.cpp</string>
+				<key>path</key>
+				<string>src/CustomParticle.cpp</string>
+				<key>sourceTree</key>
+				<string>SOURCE_ROOT</string>
+			</dict>
 			<key>6948EE371B920CB800B5AC1A</key>
 			<dict>
 				<key>children</key>
@@ -9731,6 +9835,8 @@
 				<array>
 					<string>E4B69E200A3A1BDC003C02F2</string>
 					<string>E4B69E210A3A1BDC003C02F2</string>
+					<string>8F8A2FAA2386CA842A928F12</string>
+					<string>56B669349C9D77E558F2C511</string>
 					<string>3B8120368B4FCCD80883BAF3</string>
 					<string>483FA4F6D5FA6422C559B1F5</string>
 					<string>8DED5056525646FA71980866</string>
@@ -10220,6 +10326,12 @@
 					<string>E4B69E1D0A3A1BDC003C02F2</string>
 					<string>E4B69E1E0A3A1BDC003C02F2</string>
 					<string>E4B69E1F0A3A1BDC003C02F2</string>
+					<string>A323E9C0C06FCAC1EDB2ED35</string>
+					<string>3C29CA0B3A65FF1EF9E8AED4</string>
+					<string>6B947CD0B6DAB08B5E577EFA</string>
+					<string>E764D9CB826310EB7F340C20</string>
+					<string>FFA56E7B214A7C127F668073</string>
+					<string>A4C4530273712F8E9467E912</string>
 				</array>
 				<key>isa</key>
 				<string>PBXGroup</string>

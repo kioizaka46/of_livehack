@@ -26,6 +26,15 @@ void ofApp::setup() {
     gravity             = 50;
     pop_power           = 200;
     
+    // motion tracking setting
+    width               = 320;
+    height              = 240;
+    bLearnBakground     = true;
+    threshold           = 80;
+    number_of_object    = 3;
+    diff_param          = 1;
+    tracking_interval   = 3;
+    
     // load images
     ofDirectory dir;
     ofDisableArbTex();
@@ -57,12 +66,6 @@ void ofApp::setup() {
         vidPlayer.setLoopState(OF_LOOP_NORMAL);
     #endif
     
-    width = 320;
-    height = 240;
-    
-    bLearnBakground = true;
-    threshold = 80;
-    
     // load font
     font.loadFont(font_file_name, 25, true, true);
 
@@ -74,6 +77,12 @@ void ofApp::setup() {
         // viewable particle initialize
         vector<shared_ptr<CustomParticle>> dummy_obj;
         dummy_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "", 0, font_size)));
+        for(int i = 0; i < dummy_obj.size(); i++){
+            dummy_obj[i].get()->setup(box2d.getWorld(),
+                                    ofGetWidth(),
+                                    start_point_y,
+                                    font_size * radius_fix_pram);
+        }
         viewable_particles.push_back(dummy_obj);
 
         // buffering
@@ -192,11 +201,6 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
-    // draw popcones
-    for(int i=0; i<custom_particles.size(); i++) {
-        custom_particles[i].get()->draw();
-//        ofLogNotice() << custom_particles[i].get()->getRotation();
-    }
     // draw viewable lyrics
     for(int i = 0; i < viewable_particles.size(); i++){
         for(int j = 0; j < viewable_particles[i].size(); j++){
@@ -213,7 +217,7 @@ void ofApp::draw() {
     
     drawCount++;
     // judge jump motion
-    if(contourFinder.nBlobs > 3 && abs(contourFinder.nBlobs-lastContourFinder.nBlobs) > 1 && (time(NULL) - lastJumpTime) > 5) {
+    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs-lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval) {
         lastJumpTime = time(NULL);
         int d = motionVector(contourFinder,lastContourFinder);
         jumpPopcones(d);
@@ -225,113 +229,6 @@ void ofApp::draw() {
     ofFill();
 }
 
-vector<pair<double,double> > ofApp::getHolePoints(ofxCvContourFinder const& contourFinder) {
-    
-    vector<pair<double,double> > holePoints;
-    
-    for (int i = 0; i < contourFinder.nBlobs; i++){
-        //if(contourFinder.blobs[i].hole){
-            holePoints.push_back(make_pair(contourFinder.blobs[i].centroid.x,contourFinder.blobs[i].centroid.y));
-        //}
-    }
-    
-    return holePoints;
-}
-
-bool ofApp::isSameMotion(pair<double,double> point,pair<double,double> lastPoint) {
-    const double thresh_hold = 50;
-    double dist = (point.first-lastPoint.first)*(point.first-lastPoint.first) + (point.second-lastPoint.second)*(point.second-lastPoint.second);
-    return dist <= thresh_hold;
-}
-
-double ofApp::getDistance(pair<double,double> point,pair<double,double> lastPoint) {
-    double dist = (point.first-lastPoint.first)*(point.first-lastPoint.first) + (point.second-lastPoint.second)*(point.second-lastPoint.second);
-    return dist;
-}
-
-int ofApp::motionIndex(pair<double,double> point,pair<double,double> lastPoint) {
-    
-
-    //
-    if(point.first-lastPoint.first > 0) return 3;
-    //
-    return 4;
-}
-
-int ofApp::motionVector(ofxCvContourFinder const& contourFinder,ofxCvContourFinder const& lastContourFinder) {
-
-    vector<pair<double,double> > holePoints = getHolePoints(contourFinder);
-    vector<pair<double,double> > lastHolePoints = getHolePoints(lastContourFinder);
-    
-    for(int i = 0 ; i < holePoints.size() ; i++) {
-        cout << "tmp:" << holePoints[i].first << " " << holePoints[i].second << endl;
-    }
-    
-    for(int i = 0 ; i < lastHolePoints.size() ; i++) {
-        cout << "last:" << lastHolePoints[i].first << " " << lastHolePoints[i].second << endl;
-    }
-    
-    vector<int> motionVectorCnt(5,0);
-    
-    for(int i = 0 ; i < holePoints.size() ; i++) {
-        double mxDist = INF;
-        int pairIdx = -1;
-        for(int j = 0 ; j < lastHolePoints.size() ; j++) {
-            //if(!isSameMotion(holePoints[i], lastHolePoints[j])) continue;
-            double dist = getDistance(holePoints[i],lastHolePoints[j]);
-            if(mxDist > dist && dist > 0) {
-                mxDist = dist;
-                pairIdx = j;
-            }
-        }
-        if(mxDist < 500) {
-            int vIdx = motionIndex(holePoints[i],lastHolePoints[pairIdx]);
-            motionVectorCnt[vIdx]++;
-        }
-    }
-    vector<int>::iterator it = max_element(motionVectorCnt.begin(),motionVectorCnt.end());
-    int mxVectorIdx = std::distance(motionVectorCnt.begin(), it);
-    return mxVectorIdx;
-    
-}
-
-void ofApp::jumpPopcones(int d) {
-    
-    double dx = 0,dy = 0;
-    switch (d) {
-        case 1:
-            // nothing move
-            cout << "down" << endl;
-            //dy = 50;
-            break;
-        case 2:
-            cout << "up" << endl;
-            dy = -50;
-            break;
-        case 3:
-            cout << "left" << endl;
-            dx = 50;
-            break;
-        case 4:
-            cout << "right" << endl;
-            dx = -50;
-            break;
-        default:
-            break;
-    }
-    
-    for(int i = 0; i < viewable_particles.size(); i++){
-        for(int j = 0; j < viewable_particles[i].size(); j++){
-            float vec_x = viewable_particles[i][j].get()->getPosition().x;
-            float vec_y = viewable_particles[i][j].get()->getPosition().y;
-            viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
-        }
-    }
-    
-    
-}
-
-//    font.drawString(tmp_str, ofGetWidth()/2 - 300, 400); //表示場所は後で考えます
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
     if (key == 'a') {
@@ -362,7 +259,7 @@ void ofApp::mouseDragged(int x, int y, int button) {
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {
-
+   
 }
 
 //--------------------------------------------------------------
@@ -373,4 +270,41 @@ void ofApp::mouseReleased(int x, int y, int button) {
 //--------------------------------------------------------------
 void ofApp::resized(int w, int h){
 
+}
+
+//--------------------------------------------------------------
+void ofApp::jumpPopcones(int d) {
+    
+    double dx = 0,dy = 0;
+    // temporary left and right are valid.
+    switch (d) {
+        case 1:
+            // nothing move
+//            cout << "down" << endl;
+            dy = 50;
+            break;
+        case 2
+//            cout << "up" << endl;
+            dy = -50;
+            break;
+        case 3:
+//            cout << "left" << endl;
+            dx = 50;
+            break;
+        case 4:
+//            cout << "right" << endl;
+            dx = -50;
+            break;
+        default:
+            break;
+    }
+    
+    // Pop lyrics and popcones
+    for(int i = 0; i < viewable_particles.size(); i++){
+        for(int j = 0; j < viewable_particles[i].size(); j++){
+            float vec_x = viewable_particles[i][j].get()->getPosition().x;
+            float vec_y = viewable_particles[i][j].get()->getPosition().y;
+            viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
+        }
+    }
 }
