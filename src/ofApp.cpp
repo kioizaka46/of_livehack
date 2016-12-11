@@ -7,8 +7,8 @@ void ofApp::setup() {
     music_file_name     = "koi_hoshinogen.mp3";
     
     // draw setting
-    font_size           = 45;
-    word_margin         = 10;
+    font_size           = 50;
+    word_margin         = 20;
     radius_fix_pram     = 0.6;
     margin_time         = 300;
     drop_point_x        = 100.0;
@@ -23,7 +23,7 @@ void ofApp::setup() {
     density             = 0.1;
     bounce              = 0.3;
     friction            = 0.7;
-    gravity             = 50;
+    gravity             = 20;
     pop_power           = 200;
     
     // motion tracking setting
@@ -31,9 +31,9 @@ void ofApp::setup() {
     height              = 240;
     bLearnBakground     = true;
     threshold           = 80;
-    number_of_object    = 3;
-    diff_param          = 1;
-    tracking_interval   = 3;
+    number_of_object    = 2;
+    diff_param          = 1.5;
+    tracking_interval   = 1.5;
     
     // load images
     ofDirectory dir;
@@ -55,7 +55,7 @@ void ofApp::setup() {
     box2d.init();
     box2d.setGravity(0, gravity);
     box2d.createGround();
-    box2d.setFPS(30.0);
+    box2d.setFPS(45.0);
     box2d.registerGrabbing();
     box2d.createBounds(0, 0, window_width, window_height);
     
@@ -110,7 +110,8 @@ void ofApp::setup() {
     music.load(music_file_name);
     music.setMultiPlay(true);
     music.play();
-    music.setPositionMS(10000);
+//    music.setPositionMS(10000);
+    music.setPositionMS(8000);
 }
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     vector<shared_ptr<CustomParticle>> tmp_obj;
@@ -136,7 +137,6 @@ void ofApp::update() {
         // set physics for now lyric line on viewable obj tail
         int tail_index_vp = viewable_particles.size() - 1;
         for(int i = 0; i < viewable_particles[tail_index_vp].size(); i++){
-            ofLogNotice() << viewable_particles[tail_index_vp][i].get()->alive;
             viewable_particles[tail_index_vp][i].get()->setPhysics(density, bounce, friction);
             viewable_particles[tail_index_vp][i].get()->setup(box2d.getWorld(),
                                                               viewable_particles[tail_index_vp][i].get()->getPosition().x ,
@@ -264,6 +264,26 @@ void ofApp::keyPressed(int key) {
                 viewable_particles[i][j].get()->addRepulsionForce(vec_x, vec_y + 50, pop_power);
             }
         }
+    }
+    if (key == 'p') {
+        for(int try_count = 0; try_count < 30; try_count++){
+            if(viewable_particles.size()==1)break;
+            int i = (int)ofRandom(0,viewable_particles.size());
+            if(i == viewable_particles.size()-1)continue;
+            int j = (int)ofRandom(0,viewable_particles[i].size());
+            if(viewable_particles[i][j].get()->bake_level >= 0.5) continue;
+            float vec_x = viewable_particles[i][j].get()->getPosition().x;
+            float vec_y = viewable_particles[i][j].get()->getPosition().y;
+            viewable_particles[i][j].get()->addRepulsionForce(vec_x, vec_y + 50, pop_power);
+            viewable_particles[i][j].get()->bake_level = 0.5;
+            break;
+        }
+    }
+    if (key == 'r'){
+        box2d.createBounds(0, 0, 0, 0);
+    }
+    if (key == 'g'){
+        box2d.createBounds(0, 0, window_width, window_height);
     }
 }
 
