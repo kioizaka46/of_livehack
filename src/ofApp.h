@@ -102,9 +102,9 @@ public:
     int                 lastJumpTime = 0;
     int                 drawCount = 0;
     
-    int tracking_interval;
-    int diff_param;
-    int number_of_object;
+    double tracking_interval;
+    double diff_param;
+    double number_of_object;
     
     const double INF = (1 << 27);
 };
