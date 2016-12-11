@@ -2,6 +2,30 @@
 
 //--------------------------------------------------------------
 void ofApp::setup() {
+    // file setting
+    json_file_name      = "sync_koi_hoshinogen.json";
+    music_file_name     = "koi_hoshinogen.mp3";
+    
+    // draw setting
+    font_size           = 35;
+    word_margin         = 10;
+    radius_fix_pram     = 0.6;
+    margin_time         = 300;
+    drop_point_x        = 100.0;
+    drop_point_y        = 350.0;
+    start_point_x       = 200.0;
+    start_point_y       = 250.0;
+    preload_number      = 3;
+    loaded_line_head    = 0;
+    now_lyric_line      = 0;
+    
+    // physic setting
+    dencity             = 0.1;
+    bounce              = 0.3;
+    friction            = 0.3;
+    gravity             = 50;
+    pop_power           = 200;
+    
     // load images
     ofDirectory dir;
     ofDisableArbTex();
@@ -9,19 +33,14 @@ void ofApp::setup() {
     for (int i=0; i<n; i++) {
         images.push_back(ofImage(dir.getPath(i)));
     }
-
-    // physic setting
-    dencity     = 0.1;
-    bounce      = 0.3;
-    friction    = 0.3;
-    gravity     = 50;
-    pop_power   = 200;
-
+    
+    // draw setting
     ofSetVerticalSync(true);
     ofBackgroundHex(0xE7C1DA);
     ofSetLogLevel(OF_LOG_NOTICE);
     ofEnableAlphaBlending();
 
+    // box2d setting
     box2d.init();
     box2d.setGravity(0, gravity);
     box2d.createGround();
@@ -45,23 +64,10 @@ void ofApp::setup() {
     threshold = 80;
     
     // load font
-    font.loadFont("yugothicbold.otf", 25, true, true);
-
-    // draw setting
-    font_size           = 35;
-    word_margin         = 10;
-    radius_fix_pram     = 0.6;
-    margin_time         = 300;
-    drop_point_x        = 100.0;
-    drop_point_y        = 350.0;
-    start_point_x       = 200.0;
-    start_point_y       = 250.0;
-    preload_number      = 3;
-    loaded_line_head    = 0;
-    now_lyric_line      = 0;
+    font.loadFont(font_file_name, 25, true, true);
 
     // parse json and create obj
-    std::string file = "sync_koi_hoshinogen.json";
+    std::string file = json_file_name;
     bool parsingSuccessful = sync_lyric_json.open(file);
 
     if (parsingSuccessful){
@@ -90,7 +96,7 @@ void ofApp::setup() {
     }
 
     // music load and play
-    music.load("koi_hoshinogen.mp3");
+    music.load(music_file_name);
     music.setMultiPlay(true);
     music.play();
     music.setPositionMS(10000);
@@ -196,8 +202,7 @@ void ofApp::draw() {
         for(int j = 0; j < viewable_particles[i].size(); j++){
             viewable_particles[i][j]->draw();
         }
-    }
-    
+    }    
     for (int i = 0; i < contourFinder.nBlobs; i++){
         if(contourFinder.blobs[i].hole){
             bLearnBakground = true;
@@ -251,7 +256,6 @@ int ofApp::motionIndex(pair<double,double> point,pair<double,double> lastPoint) 
     if(point.first-lastPoint.first > 0) return 3;
     //
     return 4;
-    
 }
 
 int ofApp::motionVector(ofxCvContourFinder const& contourFinder,ofxCvContourFinder const& lastContourFinder) {
@@ -330,19 +334,13 @@ void ofApp::jumpPopcones(int d) {
 //    font.drawString(tmp_str, ofGetWidth()/2 - 300, 400); //表示場所は後で考えます
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
-    if(key == 'c') {
-        float r = ofRandom(min_popcone_size, max_popcone_size);
-        custom_particles.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "あ", 0, font_size)));
-        CustomParticle * p = custom_particles.back().get();
-//        p->setPhysics(dencity, bounce, friction);
-        p->setup(box2d.getWorld(), mouseX, mouseY, r);
-    }
     if (key == 'a') {
-        jumpPopcones(3);
-        for(int i = 0; i < custom_particles.size(); i++){
-            float vec_x = custom_particles[i].get()->getPosition().x;
-            float vec_y = custom_particles[i].get()->getPosition().y;
-            custom_particles[i].get()->addRepulsionForce(vec_x, vec_y + 50, pop_power);
+        for(int i = 1; i < viewable_particles.size(); i++){
+            for(int j = 0; j < viewable_particles[i].size(); j++){
+                float vec_x = viewable_particles[i][j].get()->getPosition().x;
+                float vec_y = viewable_particles[i][j].get()->getPosition().y;
+                viewable_particles[i][j].get()->addRepulsionForce(vec_x, vec_y + 50, pop_power);
+            }
         }
     }
 }
