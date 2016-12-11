@@ -6,8 +6,8 @@ Icon
 
 ### Xcode ###
 *.xcodeproj
-!of_livehack.xcodeproj/project.pbxproj
-!of_livehack.xcodeproj/xcshareddata/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/*
 
 
 ### OpenFrameworks ###
