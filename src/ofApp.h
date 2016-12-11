@@ -52,8 +52,8 @@ class CustomParticle : public ofxBox2dCircle {
         }
 
         // --------- Debug only---------
-        ofSetColor(155,155,155);
-        ofDrawCircle(0, 0, radius);
+//        ofSetColor(155,155,155);
+//        ofDrawCircle(0, 0, radius);
         // -----------------------------
 
         glPopMatrix();
@@ -91,6 +91,8 @@ public:
     int font_size;
 
     // animation
+    int window_width;
+    int window_height;
     double drop_point_x;
     double drop_point_y;
     double start_point_x;
