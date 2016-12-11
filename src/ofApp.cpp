@@ -283,7 +283,7 @@ void ofApp::jumpPopcones(int d) {
 //            cout << "down" << endl;
             dy = 50;
             break;
-        case 2
+        case 2:
 //            cout << "up" << endl;
             dy = -50;
             break;
