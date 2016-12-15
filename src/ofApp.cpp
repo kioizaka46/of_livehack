@@ -20,11 +20,11 @@ void ofApp::setup() {
     now_lyric_line      = 0;
     
     // physic setting
-    density             = 0.1;
-    bounce              = 0.3;
-    friction            = 0.7;
-    gravity             = 20;
-    pop_power           = 200;
+    density             = 0.5;
+    bounce              = 0.4;
+    friction            = 1.0;
+    gravity             = 25;
+    pop_power           = 600;
     
     // motion tracking setting
     width               = 320;
@@ -33,7 +33,7 @@ void ofApp::setup() {
     threshold           = 80;
     number_of_object    = 2;
     diff_param          = 1.5;
-    tracking_interval   = 1.5;
+    tracking_interval   = 3;
     
     // load images
     ofDirectory dir;
@@ -76,32 +76,7 @@ void ofApp::setup() {
     bool parsingSuccessful = sync_lyric_json.open(file);
 
     if (parsingSuccessful){
-        // viewable particle initialize
-        vector<shared_ptr<CustomParticle>> dummy_obj;
-        dummy_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, "", 0, font_size)));
-        for(int i = 0; i < dummy_obj.size(); i++){
-            dummy_obj[i].get()->setup(box2d.getWorld(),
-                                    ofGetWidth(),
-                                    start_point_y,
-                                    font_size * radius_fix_pram);
-        }
-        viewable_particles.push_back(dummy_obj);
-
-        // buffering
-        for(int i = 0; i < preload_number; i++) {
-            buffering_particles.push_back(getLineObj(i));
-            loaded_line_head = preload_number;
-        }
-
-        // setup position of box2dworld
-        for(int i = 0; i< buffering_particles.size(); i++){
-            for(int j = 0; j < buffering_particles[i].size(); j++){
-                buffering_particles[i][j].get()->setup(box2d.getWorld(),
-                                                       (ofGetWidth() - buffering_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
-                                                       start_point_y,
-                                                       font_size * radius_fix_pram);
-            }
-        }
+        loaded_line_head = 0;
     } else {
         ofLogError("ofApp::setup")  << "Failed to parse JSON" << endl;
     }
@@ -110,10 +85,10 @@ void ofApp::setup() {
     music.load(music_file_name);
     music.setMultiPlay(true);
     music.play();
-//    music.setPositionMS(10000);
-    music.setPositionMS(8000);
+    music.setPositionMS(10000);
 }
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
+    // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
     if(0 <= line_index && line_index < sync_lyric_json["lines"].size()){
         double start_time = sync_lyric_json["lines"][line_index]["time"].asDouble();
@@ -126,47 +101,48 @@ vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     } else {
         ofLogError()  << "Not found Line " << line_index << endl;
     }
+    // set physics
+    for(int i = 0; i < tmp_obj.size(); i++) {
+        tmp_obj[i].get()->setPhysics(density, bounce, friction);
+        tmp_obj[i].get()->setup(box2d.getWorld(),
+                                              (ofGetWidth() - tmp_obj.size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
+                                              start_point_y,
+                                              font_size * radius_fix_pram);
+    }
     return tmp_obj;
 }
 //--------------------------------------------------------------
 void ofApp::update() {
-    float music_pos = music.getPositionMS();
-
+    // move depend on phisic setting
+    box2d.update();
+    
     // judge next lyric line started
-    if (music_pos + margin_time > buffering_particles[0][0]->start_time && loaded_line_head < sync_lyric_json["lines"].size()) {
-        // set physics for now lyric line on viewable obj tail
-        int tail_index_vp = viewable_particles.size() - 1;
-        for(int i = 0; i < viewable_particles[tail_index_vp].size(); i++){
-            viewable_particles[tail_index_vp][i].get()->setPhysics(density, bounce, friction);
-            viewable_particles[tail_index_vp][i].get()->setup(box2d.getWorld(),
-                                                              viewable_particles[tail_index_vp][i].get()->getPosition().x ,
-                                                              viewable_particles[tail_index_vp][i].get()->getPosition().y + font_size,
-                                                              font_size * radius_fix_pram);
-        }
-
+    int tail_index = viewable_particles.size() - 1;
+    
+    float music_pos = music.getPositionMS();
+    next_lyric_ms = sync_lyric_json["lines"][loaded_line_head]["time"].asDouble();
+    if (music_pos + margin_time > next_lyric_ms && loaded_line_head < sync_lyric_json["lines"].size()) {
         // next lyric line add viewable obj
-        viewable_particles.push_back(buffering_particles[0]);
-
-        // remove buffering head
-        if(buffering_particles.size() > 0){
-            buffering_particles.erase(buffering_particles.begin() + 0);
-        }
-
-        // add(load) next lyric on buffering tail
-        buffering_particles.push_back(getLineObj(loaded_line_head));
-
-        // setup position next lyric on buffering tail
-        int tail_index_bp = buffering_particles.size() - 1;
-        for(int i = 0; i < buffering_particles[tail_index_bp].size(); i++) {
-            buffering_particles[tail_index_bp][i].get()->setup(box2d.getWorld(),
-                                                               (ofGetWidth() - buffering_particles[tail_index_bp].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
-                                                               start_point_y,
-                                                               font_size * radius_fix_pram);
-        }
-//        box2d.getWorld()->DestroyBody(box2d.getWorld()->GetBodyList());
-//        ofLogNotice() << box2d.getWorld()->GetBodyCount();
+        viewable_particles.push_back(getLineObj(loaded_line_head));
         
+        // set position of now lyric under next lyric
+        tail_index = viewable_particles.size() - 1;
+        for(int i = 0; i < viewable_particles[tail_index].size(); i++){
+            viewable_particles[tail_index][i].get()->setPosition(
+                                                                 (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
+                                                                 start_point_y + font_size);
+        }
+        
+        // line indenting
         loaded_line_head++;
+    }
+    // fix now lyric position
+    if(tail_index >= 0){
+        for(int i = 0; i < viewable_particles[tail_index].size(); i++){
+            viewable_particles[tail_index][i].get()->setPosition(
+                                                                 (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
+                                                                 start_point_y);
+        }
     }
     
     bool bNewFrame = false;
@@ -205,13 +181,12 @@ void ofApp::update() {
     
     // change box2d bound size if change window size
     if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
-        // update buffering particles position
-        for(int i = 0; i < buffering_particles.size(); i++) {
-            for (int j = 0; j < buffering_particles[i].size(); j++) {
-                buffering_particles[i][j].get()->setup(box2d.getWorld(),
-                                                                   (ofGetWidth() - buffering_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
-                                                                   start_point_y,
-                                                                   font_size * radius_fix_pram);
+        // update viewable particles position
+        for(int i = 0; i < viewable_particles.size(); i++) {
+            for (int j = 0; j < viewable_particles[i].size(); j++) {
+                viewable_particles[i][j].get()->setPosition(
+                                                             (ofGetWidth() - viewable_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
+                                                            start_point_y);
             }
         }
         
@@ -220,7 +195,6 @@ void ofApp::update() {
         box2d.createBounds(0, 0, window_width, window_height);
     }
 
-    box2d.update();
     ofSoundUpdate();
 }
 
@@ -231,7 +205,9 @@ void ofApp::draw() {
         for(int j = 0; j < viewable_particles[i].size(); j++){
             viewable_particles[i][j]->draw();
         }
-    }    
+    }
+    
+    // motion section
     for (int i = 0; i < contourFinder.nBlobs; i++){
         if(contourFinder.blobs[i].hole){
             bLearnBakground = true;
@@ -257,7 +233,7 @@ void ofApp::draw() {
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
     if (key == 'a') {
-        for(int i = 0; i < viewable_particles.size(); i++){
+        for(int i = 0; i < viewable_particles.size() - 1; i++){
             for(int j = 0; j < viewable_particles[i].size(); j++){
                 float vec_x = viewable_particles[i][j].get()->getPosition().x;
                 float vec_y = viewable_particles[i][j].get()->getPosition().y;
@@ -314,7 +290,7 @@ void ofApp::mouseReleased(int x, int y, int button) {
 
 //--------------------------------------------------------------
 void ofApp::resized(int w, int h){
-
+    
 }
 
 //--------------------------------------------------------------

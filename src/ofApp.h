@@ -57,17 +57,14 @@ public:
     int loaded_line_head;
     int preload_number;
     int word_margin;
+    double next_lyric_ms;
 
-    vector <shared_ptr<CustomParticle> > custom_particles;
-    vector<shared_ptr<CustomParticle> > tmp_line;
-
-    vector<vector<shared_ptr<CustomParticle>> > buffering_particles;
     vector<vector<shared_ptr<CustomParticle>> > viewable_particles;
 
     ofxBox2d box2d;
     ofPolyline drawing;
     ofxBox2dEdge edgeLine;
-
+    
     vector <ofImage> images;
 
     float min_popcone_size = 20;
