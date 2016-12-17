@@ -76,12 +76,9 @@ public:
     double gravity;
     double pop_power;
     
-    #ifdef _USE_LIVE_VIDEO
-		  ofVideoGrabber 		vidGrabber;
-    #else
-		  ofVideoPlayer 		vidPlayer;
-    #endif
-
+    // camera
+    double camera_draw_opacity;
+    ofVideoGrabber 		vidGrabber;
     ofxCvColorImage			colorImg;
     ofxCvGrayscaleImage 	grayImage;
     ofxCvGrayscaleImage 	grayBg;

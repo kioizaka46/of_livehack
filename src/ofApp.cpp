@@ -7,7 +7,7 @@ void ofApp::setup() {
     music_file_name     = "koi_hoshinogen.mp3";
     
     // draw setting
-    font_size           = 50;
+    font_size           = 40;
     word_margin         = 20;
     radius_fix_pram     = 0.6;
     margin_time         = 300;
@@ -18,6 +18,7 @@ void ofApp::setup() {
     preload_number      = 3;
     loaded_line_head    = 0;
     now_lyric_line      = 0;
+    camera_draw_opacity = 0.7;
     
     // physic setting
     density             = 0.5;
@@ -33,7 +34,7 @@ void ofApp::setup() {
     threshold           = 80;
     number_of_object    = 2;
     diff_param          = 1.5;
-    tracking_interval   = 3;
+    tracking_interval   = 1.5;
     
     // load images
     ofDirectory dir;
@@ -59,15 +60,22 @@ void ofApp::setup() {
     box2d.registerGrabbing();
     box2d.createBounds(0, 0, window_width, window_height);
     
-    #ifdef _USE_LIVE_VIDEO
-        vidGrabber.setVerbose(true);
-        vidGrabber.setup(320,240);
-    #else
-        vidPlayer.load("/path/to/veideo.mov");
-        vidPlayer.play();
-        vidPlayer.setLoopState(OF_LOOP_NORMAL);
-    #endif
-
+    // setup camera
+    vidGrabber.setVerbose(true);
+    vidGrabber.setup(window_width ,window_height);
+    vector<ofVideoDevice> devices = vidGrabber.listDevices();
+    for(int i = 0; i < devices.size(); i++){
+        if(devices[i].bAvailable){
+            ofLogNotice() << devices[i].id << ": " << devices[i].deviceName;
+        }else{
+            ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
+        }
+    }
+    vidGrabber.setDeviceID(0);
+    vidGrabber.setDesiredFrameRate(40);
+    vidGrabber.initGrabber(window_width, window_height);
+    
+    
     // load font
     font.loadFont(font_file_name, font_size, true, true);
 
@@ -116,6 +124,29 @@ void ofApp::update() {
     // move depend on phisic setting
     box2d.update();
     
+    // camera captured
+    bool bNewFrame = false;
+    vidGrabber.update();
+    bNewFrame = vidGrabber.isFrameNew();
+    
+    if (bNewFrame){
+        colorImg.setFromPixels(vidGrabber.getPixels());
+        
+        grayImage = colorImg;
+        if (bLearnBakground == true){
+            grayBg = grayImage;                // the = sign copys the pixels from grayImage into grayBg (operator overloading)
+            bLearnBakground = false;
+        }
+
+        // take the abs value of the difference between background and incoming and then threshold:
+        grayDiff.absDiff(grayBg, grayImage);
+        grayDiff.threshold(threshold);
+        
+        // find contours which are between the size of 20 pixels and 1/3 the w*h pixels.
+        // also, find holes is set to true so we will get interior contours as well....
+        contourFinder.findContours(grayDiff, 20, (width*height)/3, 10, true);  // find holes
+    }
+    
     // judge next lyric line started
     int tail_index = viewable_particles.size() - 1;
     
@@ -136,6 +167,7 @@ void ofApp::update() {
         // line indenting
         loaded_line_head++;
     }
+    
     // fix now lyric position
     if(tail_index >= 0){
         for(int i = 0; i < viewable_particles[tail_index].size(); i++){
@@ -143,40 +175,6 @@ void ofApp::update() {
                                                                  (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
                                                                  start_point_y);
         }
-    }
-    
-    bool bNewFrame = false;
-    
-    #ifdef _USE_LIVE_VIDEO
-        vidGrabber.update();
-        bNewFrame = vidGrabber.isFrameNew();
-    #else
-        vidPlayer.update();
-        bNewFrame = vidPlayer.isFrameNew();
-    #endif
-    
-    if (bNewFrame){
-        
-    #ifdef _USE_LIVE_VIDEO
-        colorImg.setFromPixels(vidGrabber.getPixels());
-    #else
-        colorImg.setFromPixels(vidPlayer.getPixels());
-    #endif
-        
-        grayImage = colorImg;
-        
-        if (bLearnBakground == true){
-            grayBg = grayImage;		// the = sign copys the pixels from grayImage into grayBg (operator overloading)
-            bLearnBakground = false;
-        }
-        
-        // take the abs value of the difference between background and incoming and then threshold:
-        grayDiff.absDiff(grayBg, grayImage);
-        grayDiff.threshold(threshold);
-        
-        // find contours which are between the size of 20 pixels and 1/3 the w*h pixels.
-        // also, find holes is set to true so we will get interior contours as well....
-        contourFinder.findContours(grayDiff, 20, (width*height)/3, 10, true);	// find holes
     }
     
     // change box2d bound size if change window size
@@ -194,12 +192,21 @@ void ofApp::update() {
         window_height = ofGetHeight();
         box2d.createBounds(0, 0, window_width, window_height);
     }
-
+    
+    // capture camera view
+    vidGrabber.update();
+    
+    // sound update
     ofSoundUpdate();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw() {
+    // draw camera caputured
+    // TODO reverse capture image
+    ofSetColor(255, 255, 255, 255 * camera_draw_opacity);
+    vidGrabber.draw(0,0);
+    
     // draw viewable lyrics
     for(int i = 0; i < viewable_particles.size(); i++){
         for(int j = 0; j < viewable_particles[i].size(); j++){
@@ -218,16 +225,13 @@ void ofApp::draw() {
     
     drawCount++;
     // judge jump motion
-    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs-lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval) {
+    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval) {
         lastJumpTime = time(NULL);
-        int d = motionVector(contourFinder,lastContourFinder);
+        int d = motionVector(contourFinder, lastContourFinder);
         jumpPopcones(d);
-
     }
     
     if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
-    
-    ofFill();
 }
 
 //--------------------------------------------------------------

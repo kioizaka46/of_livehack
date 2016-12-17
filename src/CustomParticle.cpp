@@ -25,7 +25,7 @@ void CustomParticle::draw() {
     
     int tmp_img_num = (int)(image_count + 1) * bake_level;
     if (tmp_img_num == 0){
-        ofSetColor(0,0,0,255*opacity);
+        ofSetColor(255,255,255,255*opacity);
         font.drawString(text, 0 - (font_size * 0.5), 0 + (font_size * 0.5));
     } else if (tmp_img_num == 1) {
         ofSetColor(255,255,255,255*opacity);
