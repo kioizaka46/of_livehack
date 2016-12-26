@@ -11,6 +11,7 @@ CustomParticle::CustomParticle(vector<ofImage> images, string txt, float st_time
     image_count = images.size();
     start_time = st_time;
     opacity = 1.0;
+    collisioned_count = 0;
 }
 
 void CustomParticle::draw() {

@@ -59,7 +59,7 @@ public:
     int word_margin;
     double next_lyric_ms;
 
-    vector<vector<shared_ptr<CustomParticle>> > viewable_particles;
+    vector<vector<shared_ptr<CustomParticle>>> viewable_particles;
 
     ofxBox2d box2d;
     ofPolyline drawing;

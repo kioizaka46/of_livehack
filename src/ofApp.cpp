@@ -196,6 +196,44 @@ void ofApp::update() {
     // capture camera view
     vidGrabber.update();
     
+    // check collision
+    float wall_right, wall_left, wall_celling, setp;
+    setp = 100;
+    for(int i = 0; i < viewable_particles.size(); i++){
+        for(int j = 0; j < viewable_particles[i].size(); j++){
+            double radius = viewable_particles[i][j].get()->getRadius();
+            wall_right = ofGetWidth() - radius;
+            wall_left = radius;
+            wall_celling = radius;
+            double x = viewable_particles[i][j].get()->getPosition().x;
+            double y = viewable_particles[i][j].get()->getPosition().y;
+            
+            if (x <= wall_right && y <= setp) {
+                viewable_particles[i][j].get()->collisioned_count++;
+            } else if (x >= wall_left && y <= setp){
+                viewable_particles[i][j].get()->collisioned_count++;
+            } else if (y >= wall_celling && y <= setp){
+                viewable_particles[i][j].get()->collisioned_count++;
+            }
+            
+            if (viewable_particles[i][j].get()->collisioned_count == 50) {
+                viewable_particles[i][j].get()->opacity = 0.7;
+            } else if (viewable_particles[i][j].get()->collisioned_count == 100) {
+                viewable_particles[i][j].get()->opacity = 0.3;
+            } else if (viewable_particles[i][j].get()->collisioned_count == 150){;
+                viewable_particles[i][j].get()->opacity = 1.0;
+                viewable_particles[i][j].get()->bake_level = 0.5;
+            } else if (viewable_particles[i][j].get()->collisioned_count == 170) {
+                viewable_particles[i][j].get()->opacity = 1.0;
+                viewable_particles[i][j].get()->bake_level = 0.7;
+            } else if (viewable_particles[i][j].get()->collisioned_count > 200) {
+                viewable_particles[i][j].get()->opacity = 0;
+                viewable_particles[i][j].get()->destroy();
+                viewable_particles[i].erase(viewable_particles[i].begin() + j );
+            }
+        }
+    }
+    
     // sound update
     ofSoundUpdate();
 }

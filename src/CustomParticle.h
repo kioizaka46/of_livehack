@@ -14,6 +14,7 @@ public:
     float start_time;
     int font_size;
     float opacity;
+    int collisioned_count;
     
     CustomParticle(vector<ofImage> images, string txt, float st_time, int f_size);
     void draw();
