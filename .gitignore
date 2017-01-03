@@ -5,9 +5,7 @@
 Icon
 
 ### Xcode ###
-*.xcodeproj/*
-!project.pbxproj
-!*.xcscheme
+*.xcodeproj
 
 ### OpenFrameworks ###
 bin/
