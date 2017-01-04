@@ -101,4 +101,12 @@ public:
     double number_of_object;
     
     const double INF = (1 << 27);
+    
+    const int w_size = 1000;
+    const int h_size = 800;
+    
+    ofImage img;
+    ofxCvHaarFinder finder;
+
+    ofImage image;
 };
