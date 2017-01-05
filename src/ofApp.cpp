@@ -202,6 +202,7 @@ void ofApp::update() {
     // capture camera view
     vidGrabber.update();
     
+    
     // check collision
     float wall_right, wall_left, wall_celling, setp;
     setp = 100;
@@ -240,11 +241,12 @@ void ofApp::update() {
         }
     }
     
-    image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     
+    //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     //  face detection
-    finder.findHaarObjects(image, 0, 0);
     
+    if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
+    loopCnt++;
     // sound update
     ofSoundUpdate();
 }

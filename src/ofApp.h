@@ -95,6 +95,8 @@ public:
     double              motionCount = 0;
     int                 lastJumpTime = 0;
     int                 drawCount = 0;
+    int                 loopCnt = 1;
+    const int           judgePoint = 50;
     
     double tracking_interval;
     double diff_param;
