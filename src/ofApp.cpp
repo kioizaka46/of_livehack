@@ -257,6 +257,19 @@ void ofApp::draw() {
     // TODO reverse capture image
     ofSetColor(255, 255, 255, 255 * camera_draw_opacity);
     vidGrabber.draw(0,0);
+  
+    // draw snow
+    ofSetLineWidth(3);
+    ofNoFill();
+
+    // debug
+    cout << finder.blobs.size() << endl;
+    
+    for(int i = 0; i < finder.blobs.size(); i++) {
+        ofRectangle cur = finder.blobs[i].boundingRect;
+        ofDrawRectangle(cur.x, cur.y, cur.width, cur.height);
+        img.draw(cur.x,cur.y,cur.width,cur.height);
+    }
     
     // draw viewable lyrics
     for(int i = 0; i < viewable_particles.size(); i++){
@@ -284,17 +297,6 @@ void ofApp::draw() {
     
     if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
 
-    //image.draw(0, 0);
-    ofSetLineWidth(3);
-    ofNoFill();
-    
-    cout << finder.blobs.size() << endl;
-        
-    for(int i = 0; i < finder.blobs.size(); i++) {
-        ofRectangle cur = finder.blobs[i].boundingRect;
-        ofDrawRectangle(cur.x, cur.y, cur.width, cur.height);
-        img.draw(cur.x,cur.y,cur.width,cur.height);
-    }
 }
 
 //--------------------------------------------------------------
