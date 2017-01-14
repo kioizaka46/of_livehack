@@ -60,6 +60,9 @@ void ofApp::setup() {
     box2d.registerGrabbing();
     box2d.createBounds(0, 0, window_width, window_height);
     
+    ofSetWindowShape(window_width, window_height);
+
+    
     // setup camera
     vidGrabber.setVerbose(true);
     vidGrabber.setup(window_width ,window_height);
@@ -94,6 +97,9 @@ void ofApp::setup() {
     music.setMultiPlay(true);
     music.play();
     music.setPositionMS(10000);
+    
+    finder.setup("haarcascade_frontalface_default.xml");
+    img.load("asyu.png");
 }
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     // create line obj
@@ -196,6 +202,7 @@ void ofApp::update() {
     // capture camera view
     vidGrabber.update();
     
+    
     // check collision
     float wall_right, wall_left, wall_celling, setp;
     setp = 100;
@@ -234,6 +241,12 @@ void ofApp::update() {
         }
     }
     
+    
+    //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
+    //  face detection
+    
+    if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
+    loopCnt++;
     // sound update
     ofSoundUpdate();
 }
@@ -244,6 +257,19 @@ void ofApp::draw() {
     // TODO reverse capture image
     ofSetColor(255, 255, 255, 255 * camera_draw_opacity);
     vidGrabber.draw(0,0);
+  
+    // draw snow
+    ofSetLineWidth(3);
+    ofNoFill();
+
+    // debug
+    cout << finder.blobs.size() << endl;
+    
+    for(int i = 0; i < finder.blobs.size(); i++) {
+        ofRectangle cur = finder.blobs[i].boundingRect;
+        ofDrawRectangle(cur.x, cur.y, cur.width, cur.height);
+        img.draw(cur.x,cur.y,cur.width,cur.height);
+    }
     
     // draw viewable lyrics
     for(int i = 0; i < viewable_particles.size(); i++){
@@ -270,6 +296,7 @@ void ofApp::draw() {
     }
     
     if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
+
 }
 
 //--------------------------------------------------------------

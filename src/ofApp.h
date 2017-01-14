@@ -95,10 +95,20 @@ public:
     double              motionCount = 0;
     int                 lastJumpTime = 0;
     int                 drawCount = 0;
+    int                 loopCnt = 1;
+    const int           judgePoint = 50;
     
     double tracking_interval;
     double diff_param;
     double number_of_object;
     
     const double INF = (1 << 27);
+    
+    const int w_size = 1000;
+    const int h_size = 800;
+    
+    ofImage img;
+    ofxCvHaarFinder finder;
+
+    ofImage image;
 };
