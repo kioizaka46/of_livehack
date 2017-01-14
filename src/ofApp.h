@@ -8,6 +8,8 @@
 #include "ofxJSON.h"
 #include "CustomParticle.h"
 #include "Detection.h"
+#include "ServoControllerThread.h"
+
 
 // -------------------------------------------------
 class ofApp : public ofBaseApp {
@@ -90,6 +92,13 @@ public:
     ofxCvGrayscaleImage 	grayDiff;
     ofxCvContourFinder 	contourFinder;
     ofxCvContourFinder 	lastContourFinder;
+    
+    // servo controller thread various
+    int rotate_degree;
+    ServoControllerThread servo_thread;
+    int sensor_interval_ms;
+    int next_execute_time;
+    bool execute_flag;
     
     void jumpPopcones(int d);
     

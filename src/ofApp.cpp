@@ -37,6 +37,10 @@ void ofApp::setup() {
     diff_param          = 1.5;
     tracking_interval   = 1.5;
     
+    // thread setting
+    sensor_interval_ms  = 10000;
+    rotate_degree       = 0;
+    
     // load images
     ofDirectory dir;
     ofDisableArbTex();
@@ -78,7 +82,6 @@ void ofApp::setup() {
     vidGrabber.setDeviceID(0);
     vidGrabber.setDesiredFrameRate(40);
     vidGrabber.initGrabber(window_width, window_height);
-    
     
     // load font
     font.loadFont(font_file_name, font_size, true, true);
@@ -147,6 +150,16 @@ vector<shared_ptr<CustomParticle>> ofApp::getResultObj(int line_index, int x, in
 void ofApp::update() {
     // move depend on phisic setting
     box2d.update();
+    
+    // thread update
+    if(rotate_degree == 0){
+        rotate_degree = 90;
+    }else if(rotate_degree == 90){
+        rotate_degree = 180;
+    }else{
+        rotate_degree = 0;
+    }
+    servo_thread.update(rotate_degree, sensor_interval_ms);
     
     // camera captured
     bool bNewFrame = false;
