@@ -26,10 +26,9 @@ public:
     
     bool bMouseForce;
     
-
     // my method
-    vector<shared_ptr<CustomParticle>> getLineObj(int line_index);
-
+    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getResultObj(int line_index, int x, int y);
+    
     // sounds
     string music_file_name;
     ofSoundPlayer music;
@@ -59,14 +58,20 @@ public:
     int word_margin;
     double next_lyric_ms;
 
-    vector<vector<shared_ptr<CustomParticle>>> viewable_particles;
-
+    vector<vector<shared_ptr<CustomParticle>>> viewable_particles, result_viewable_particles;
+    
     ofxBox2d box2d;
-    ofPolyline drawing;
+    ofPolyline drawing, groundLine, cupLine;
     ofxBox2dEdge edgeLine;
     
     vector <ofImage> images;
-
+   
+    // result
+    ofImage yaneA, yaneB, yaneC, textA, textB, textC, first, second, third;
+    vector<shared_ptr<ofxBox2dCircle> > circles, pop ;
+    vector <ofPolyline> lines;
+    ofPtr<ofxBox2dPolygon> cup;
+    
     float min_popcone_size = 20;
     float max_popcone_size = 30;
 
@@ -95,10 +100,23 @@ public:
     double              motionCount = 0;
     int                 lastJumpTime = 0;
     int                 drawCount = 0;
+    int                 loopCnt = 1;
+    const int           judgePoint = 50;
     
     double tracking_interval;
     double diff_param;
     double number_of_object;
     
     const double INF = (1 << 27);
+    
+
+    float area_a, area_b, area_c, pop_a, pop_b, pop_c;
+    const int w_size = 1000;
+    const int h_size = 800;
+    
+    ofImage img;
+    ofxCvHaarFinder finder;
+
+    ofImage image;
+
 };
