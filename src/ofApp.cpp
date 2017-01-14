@@ -62,7 +62,7 @@ void ofApp::setup() {
     box2d.createBounds(0, 0, window_width, window_height);
     
     ofSetWindowShape(window_width, window_height);
-
+    
     
     // setup camera
     vidGrabber.setVerbose(true);
@@ -97,12 +97,12 @@ void ofApp::setup() {
     music.load(music_file_name);
     music.setMultiPlay(true);
     music.play();
-
+    
     music.setPositionMS(1000);
     
     finder.setup("haarcascade_frontalface_default.xml");
     img.load("asyu.png");
-
+    
 }
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     // create line obj
@@ -128,7 +128,7 @@ vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     }
     return tmp_obj;
 }
-vector<shared_ptr<CustomParticle>> ofApp::getResultObj(int line_index){
+vector<shared_ptr<CustomParticle>> ofApp::getResultObj(int line_index, int x, int y){
     // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
     string test = "POP";
@@ -137,7 +137,7 @@ vector<shared_ptr<CustomParticle>> ofApp::getResultObj(int line_index){
     // set physics
     for(int i = 0; i < tmp_obj.size(); i++) {
         tmp_obj[i].get()->setPhysics(density, bounce, friction);
-        tmp_obj[i].get()->setup(box2d.getWorld(), ofGetWidth()*5/6, 0, 20);
+        tmp_obj[i].get()->setup(box2d.getWorld(), x, y, 20);
     }
     return tmp_obj;
 }
@@ -200,7 +200,6 @@ void ofApp::update() {
             }
         }
         
-
         // change box2d bound size if change window size
         if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
             // update viewable particles position
@@ -265,7 +264,7 @@ void ofApp::update() {
     
     if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
     loopCnt++;
-
+    
     // sound update
     ofSoundUpdate();
 }
@@ -281,13 +280,10 @@ void ofApp::draw() {
     
     ofSetColor(255, 255, 255, 255 * camera_draw_opacity);
     vidGrabber.draw(0,0);
-  
+    
     // draw snow
     ofSetLineWidth(3);
     ofNoFill();
-
-    // debug
-    cout << finder.blobs.size() << endl;
     
     for(int i = 0; i < finder.blobs.size(); i++) {
         ofRectangle cur = finder.blobs[i].boundingRect;
@@ -329,34 +325,25 @@ void ofApp::draw() {
     
     if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
     
-    // draw circle
-        for (int i = 0; i < circles.size(); i++) {
-            ofFill();
-            ofSetHexColor(0xffffff);
-            circles[i].get()->draw();
-        }
-    
-    
     // clear
     // RESULT
     if (music.getPositionMS() == 13678) {
         for(int i = 0; i < viewable_particles.size(); i++){
             for(int j = 0; j < viewable_particles[i].size(); j++){
                 viewable_particles[i][j].get()->destroy();
-                //                viewable_particles[i].erase(viewable_particles[i].begin() + j );
                 viewable_particles.erase(viewable_particles.begin());
             }
         }
-        // image sozai
-        yaneA.load("sozai/yane_A.png");
-        yaneB.load("sozai/yane_B.png");
-        yaneC.load("sozai/yane_C.png");
-        textA.load("sozai/text_A.png");
-        textB.load("sozai/text_B.png");
-        textC.load("sozai/text_C.png");
-        first.load("sozai/1st.png");
-        second.load("sozai/2nd.png");
-        third.load("sozai/3rd.png");;
+        // image images
+        yaneA.load("images/yane_A.png");
+        yaneB.load("images/yane_B.png");
+        yaneC.load("images/yane_C.png");
+        textA.load("images/text_A.png");
+        textB.load("images/text_B.png");
+        textC.load("images/text_C.png");
+        first.load("images/1st.png");
+        second.load("images/2nd.png");
+        third.load("images/3rd.png");;
         // make frame
         cupLine.addVertex(10, 0);
         cupLine.addVertex(20, 0);
@@ -386,15 +373,25 @@ void ofApp::draw() {
         cup = ofPtr<ofxBox2dPolygon>(new ofxBox2dPolygon);
         cup.get()->addVertexes(cupLine);
         cup.get()->triangulatePoly(10);
-        // ofLog() << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
         cup.get()->setPhysics(0.0, 0.5, 0.1);
         cup.get()->create(box2d.getWorld());
-        
-        // result
-        result_viewable_particles.push_back(getResultObj(loaded_line_head));
     }
-    if (music.getPositionMS()  >= 13678) {
+    if (music.getPositionMS() >= 13678) {
         int rank1, rank2, rank3;
+        
+        // drop popcone in partitioned area
+        if (music.getPositionMS()  < 22000) {
+            for (int i = 0; i < pop_a; i++) {
+                result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
+            }
+            for (int i = 0; i < pop_b; i++) {
+                result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
+            }
+            for (int i = 0; i < pop_c; i++) {
+                result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
+            }
+            
+        }
         
         // make frame
         groundLine.draw();
@@ -452,14 +449,11 @@ void ofApp::draw() {
         yaneA.draw(10, 0, 320, 100);
         yaneB.draw(ofGetWidth()/3, 0, 320, 100);
         yaneC.draw(ofGetWidth()*2/3, 0, 320, 100);
-//        second.draw(ofGetWidth()*1/6-50, 120, 100, 70);
-//        third.draw(ofGetWidth()*1/2-50, 120, 100, 70);
-//        first.draw(ofGetWidth()*5/6-50, 120, 100, 70);
         textA.draw(ofGetWidth()*1/6-50, ofGetHeight() - 105, 150, 105);
         textB.draw(ofGetWidth()*1/2-50, ofGetHeight() - 105, 150, 105);
         textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
     }
-
+    
 }
 
 //--------------------------------------------------------------
@@ -600,19 +594,15 @@ void ofApp::jumpPopcones(int d) {
     switch (d) {
         case 1:
             // nothing move
-            //            cout << "down" << endl;
             dy = 50;
             break;
         case 2:
-            //            cout << "up" << endl;
             dy = -50;
             break;
         case 3:
-            //            cout << "left" << endl;
             dx = 50;
             break;
         case 4:
-            //            cout << "right" << endl;
             dx = -50;
             break;
         default:
@@ -628,31 +618,3 @@ void ofApp::jumpPopcones(int d) {
         }
     }
 }
-
-
-// area_A
-//        for (int i = 0; i < pop_a; i++) {
-//            shared_ptr<ofxBox2dCircle> areaa = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
-//            areaa.get()->setPhysics(50, 0.5, 0.5);
-//            areaa.get()->setup(box2d.getWorld(), ofGetWidth()/6+i*10, 0, 20);
-//            circles.push_back(areaa);
-//        }
-//        // area_B
-//        for (int i = 0; i < pop_b; i++) {
-//            shared_ptr<ofxBox2dCircle> areab = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
-//            areab.get()->setPhysics(50, 0.5, 0.5);
-//            areab.get()->setup(box2d.getWorld(), ofGetWidth()/2+i*10, 0, 20);
-//            circles.push_back(areab);
-//        }
-//
-//        // area_C
-//        for (int i = 0; i < pop_c; i++) {
-//            for(int i = 0; i < result_viewable_particles.size(); i++){
-//                for(int j = 0; j < result_viewable_particles[i].size(); j++){
-//                    ofFill();
-//                    ofSetHexColor(0xffffff);
-//                    result_viewable_particles[i][j].get()->bake_level = 0.7;
-//                }
-//            }
-//
-//        }

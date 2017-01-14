@@ -26,9 +26,8 @@ public:
     
     bool bMouseForce;
     
-
     // my method
-    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getResultObj(int line_index);
+    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getResultObj(int line_index, int x, int y);
     
     // sounds
     string music_file_name;
