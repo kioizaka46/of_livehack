@@ -443,7 +443,6 @@
 		A323E9C0C06FCAC1EDB2ED35 /* CustomParticle.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 4; name = CustomParticle.cpp; path = src/CustomParticle.cpp; sourceTree = SOURCE_ROOT; };
 		A3411731962D0402217F182B /* fast_marching.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = fast_marching.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/videostab/fast_marching.hpp; sourceTree = SOURCE_ROOT; };
 		A3528DDFF05B00283552455D /* keep_alive.c */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.c; fileEncoding = 30; name = keep_alive.c; path = ../../../addons/ofxKinect/libs/libfreenect/src/keep_alive.c; sourceTree = SOURCE_ROOT; };
-		A4C4530273712F8E9467E912 /* Detection.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = Detection.hpp; path = src/Detection.hpp; sourceTree = SOURCE_ROOT; };
 		A50D78022165A0491D5BACDE /* ofxBox2dJoint.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = ofxBox2dJoint.cpp; path = ../../../addons/ofxBox2d/src/ofxBox2dJoint.cpp; sourceTree = SOURCE_ROOT; };
 		A53D126FAA18A596595C0C6F /* b2Math.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = b2Math.h; path = ../../../addons/ofxBox2d/libs/Box2D/Common/b2Math.h; sourceTree = SOURCE_ROOT; };
 		A6197D72F51ED9030D7C5F16 /* vector3.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = vector3.h; path = ../../../addons/ofxAssimpModelLoader/libs/assimp/include/assimp/vector3.h; sourceTree = SOURCE_ROOT; };
@@ -1728,7 +1727,6 @@
 				3C29CA0B3A65FF1EF9E8AED4 /* CustomParticle.h */,
 				E764D9CB826310EB7F340C20 /* Detection.cpp */,
 				FFA56E7B214A7C127F668073 /* Detection.h */,
-				A4C4530273712F8E9467E912 /* Detection.hpp */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;

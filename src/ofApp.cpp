@@ -61,6 +61,9 @@ void ofApp::setup() {
     box2d.registerGrabbing();
     box2d.createBounds(0, 0, window_width, window_height);
     
+    ofSetWindowShape(window_width, window_height);
+
+    
     // setup camera
     vidGrabber.setVerbose(true);
     vidGrabber.setup(window_width ,window_height);
@@ -94,7 +97,12 @@ void ofApp::setup() {
     music.load(music_file_name);
     music.setMultiPlay(true);
     music.play();
+
     music.setPositionMS(1000);
+    
+    finder.setup("haarcascade_frontalface_default.xml");
+    img.load("asyu.png");
+
 }
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     // create line obj
@@ -192,6 +200,7 @@ void ofApp::update() {
             }
         }
         
+
         // change box2d bound size if change window size
         if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
             // update viewable particles position
@@ -249,6 +258,14 @@ void ofApp::update() {
             }
         }
     }
+    
+    
+    //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
+    //  face detection
+    
+    if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
+    loopCnt++;
+
     // sound update
     ofSoundUpdate();
 }
@@ -264,6 +281,19 @@ void ofApp::draw() {
     
     ofSetColor(255, 255, 255, 255 * camera_draw_opacity);
     vidGrabber.draw(0,0);
+  
+    // draw snow
+    ofSetLineWidth(3);
+    ofNoFill();
+
+    // debug
+    cout << finder.blobs.size() << endl;
+    
+    for(int i = 0; i < finder.blobs.size(); i++) {
+        ofRectangle cur = finder.blobs[i].boundingRect;
+        ofDrawRectangle(cur.x, cur.y, cur.width, cur.height);
+        img.draw(cur.x,cur.y,cur.width,cur.height);
+    }
     
     // draw viewable lyrics
     for(int i = 0; i < viewable_particles.size(); i++){
@@ -429,6 +459,7 @@ void ofApp::draw() {
         textB.draw(ofGetWidth()*1/2-50, ofGetHeight() - 105, 150, 105);
         textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
     }
+
 }
 
 //--------------------------------------------------------------
