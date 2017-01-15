@@ -403,7 +403,6 @@ void ofApp::draw() {
             for (int i = 0; i < pop_c; i++) {
                 result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
             }
-            
         }
         
         // make frame

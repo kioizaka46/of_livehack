@@ -118,7 +118,7 @@ public:
     
     const double INF = (1 << 27);
     
-
+    // for result ranking view
     float area_a, area_b, area_c, pop_a, pop_b, pop_c;
     const int w_size = 1000;
     const int h_size = 800;
