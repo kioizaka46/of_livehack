@@ -6,7 +6,6 @@ void ofApp::setup() {
     json_file_name      = "sync_koi_hoshinogen.json";
     music_file_name     = "koi_hoshinogen.mp3";
     
-    
     // draw setting
     font_size           = 40;
     word_margin         = 20;
@@ -79,7 +78,6 @@ void ofApp::setup() {
     vidGrabber.setDesiredFrameRate(40);
     vidGrabber.initGrabber(window_width, window_height);
     
-    
     // load font
     font.loadFont(font_file_name, font_size, true, true);
     
@@ -100,10 +98,11 @@ void ofApp::setup() {
     
     music.setPositionMS(1000);
     
+    //snow
     finder.setup("haarcascade_frontalface_default.xml");
-    img.load("asyu.png");
-    
+    snow_img.load("popcorn.png");
 }
+
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
@@ -128,10 +127,11 @@ vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     }
     return tmp_obj;
 }
-vector<shared_ptr<CustomParticle>> ofApp::getResultObj(int line_index, int x, int y){
+
+vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(int line_index, int x, int y){
     // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
-    string test = "POP";
+    string test = "●";
     tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, test, 0, font_size)));
     
     // set physics
@@ -141,8 +141,6 @@ vector<shared_ptr<CustomParticle>> ofApp::getResultObj(int line_index, int x, in
     }
     return tmp_obj;
 }
-
-
 //--------------------------------------------------------------
 void ofApp::update() {
     // move depend on phisic setting
@@ -152,7 +150,9 @@ void ofApp::update() {
     bool bNewFrame = false;
     vidGrabber.update();
     bNewFrame = vidGrabber.isFrameNew();
-    
+    /*Bonustime set*/ //TODO
+    bool f = music.getPositionMS() < 2000;
+
     if (bNewFrame){
         colorImg.setFromPixels(vidGrabber.getPixels());
         
@@ -171,18 +171,19 @@ void ofApp::update() {
         contourFinder.findContours(grayDiff, 20, (width*height)/3, 10, true);  // find holes
     }
     // result
-    if (music.getPositionMS() < 13678) {
+//    if (music.getPositionMS() < 13678) {
         // judge next lyric line started
         int tail_index = viewable_particles.size() - 1;
-        
+    
         float music_pos = music.getPositionMS();
         next_lyric_ms = sync_lyric_json["lines"][loaded_line_head]["time"].asDouble();
         if (music_pos + margin_time > next_lyric_ms && loaded_line_head < sync_lyric_json["lines"].size()) {
             // next lyric line add viewable obj
-            viewable_particles.push_back(getLineObj(loaded_line_head));
+//s            viewable_particles.push_back(getLineObj(loaded_line_head));
             // set position of now lyric under next lyric
             tail_index = viewable_particles.size() - 1;
-            for(int i = 0; i < viewable_particles[tail_index].size(); i++){
+            
+            for(int i = 0; i < viewable_particles[tail_index].size() && f; i++){
                 viewable_particles[tail_index][i].get()->setPosition(
                                                                      (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
                                                                      start_point_y + font_size);
@@ -193,7 +194,7 @@ void ofApp::update() {
         
         // fix now lyric position
         if(tail_index >= 0){
-            for(int i = 0; i < viewable_particles[tail_index].size(); i++){
+            for(int i = 0; i < viewable_particles[tail_index].size() && f; i++){
                 viewable_particles[tail_index][i].get()->setPosition(
                                                                      (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
                                                                      start_point_y);
@@ -203,7 +204,7 @@ void ofApp::update() {
         // change box2d bound size if change window size
         if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
             // update viewable particles position
-            for(int i = 0; i < viewable_particles.size(); i++) {
+            for(int i = 0; i < viewable_particles.size() && f; i++) {
                 for (int j = 0; j < viewable_particles[i].size(); j++) {
                     viewable_particles[i][j].get()->setPosition(
                                                                 (ofGetWidth() - viewable_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
@@ -256,7 +257,7 @@ void ofApp::update() {
                 }
             }
         }
-    }
+//    }
     
     
     //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
@@ -284,19 +285,28 @@ void ofApp::draw() {
     // draw snow
     ofSetLineWidth(3);
     ofNoFill();
+    int control_size_x = 80;
+    int control_size_y = 200;
     
     for(int i = 0; i < finder.blobs.size(); i++) {
         ofRectangle cur = finder.blobs[i].boundingRect;
-        ofDrawRectangle(cur.x, cur.y, cur.width, cur.height);
-        img.draw(cur.x,cur.y,cur.width,cur.height);
+        snow_img.draw(cur.x - control_size_x/2 ,cur.y - control_size_y/2 - 50, cur.width + control_size_x, cur.height + control_size_y);
+        // braw bonus time popcorn
+        if(loopCnt % 15 == 0){
+            viewable_particles.push_back(getCustomObj(loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2));
+            int idx = viewable_particles[loaded_line_head].size() - 1;
+            viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%100 - rand()%100), 100);
+            viewable_particles[loaded_line_head][idx].get()->bake_level = 0.8;
+            viewable_particles[loaded_line_head][idx]->draw();
+            loaded_line_head++;
+        }
     }
     
     // draw viewable lyrics
     for(int i = 0; i < viewable_particles.size(); i++){
         for(int j = 0; j < viewable_particles[i].size(); j++){
             viewable_particles[i][j]->draw();
-            viewable_particles[i][j];
-            
+            //viewable_particles[i][j];
         }
     }
     
@@ -327,6 +337,7 @@ void ofApp::draw() {
     
     // clear
     // RESULT
+    /*
     if (music.getPositionMS() == 13678) {
         for(int i = 0; i < viewable_particles.size(); i++){
             for(int j = 0; j < viewable_particles[i].size(); j++){
@@ -382,13 +393,13 @@ void ofApp::draw() {
         // drop popcone in partitioned area
         if (music.getPositionMS()  < 22000) {
             for (int i = 0; i < pop_a; i++) {
-                result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_b; i++) {
-                result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_c; i++) {
-                result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
             }
             
         }
@@ -453,6 +464,7 @@ void ofApp::draw() {
         textB.draw(ofGetWidth()*1/2-50, ofGetHeight() - 105, 150, 105);
         textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
     }
+*/
     
 }
 
@@ -536,21 +548,21 @@ void ofApp::keyPressed(int key) {
             shared_ptr<ofxBox2dCircle> areaa = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
             areaa.get()->setPhysics(100, 0.5, 0.5);
             areaa.get()->setup(box2d.getWorld(), ofGetWidth()/6, 0, 20);
-            circles.push_back(areaa);
+//s            circles.push_back(areaa);
         }
         // area_B
         for (int i = 0; i < pop_b; i++) {
             shared_ptr<ofxBox2dCircle> areab = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
             areab.get()->setPhysics(1, 0.5, 0.5);
             areab.get()->setup(box2d.getWorld(), ofGetWidth()/2, 0, 20);
-            circles.push_back(areab);
+//s            circles.push_back(areab);
         }
         // area_C
         for (int i = 0; i < pop_c; i++) {
             shared_ptr<ofxBox2dCircle> areac = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
             areac.get()->setPhysics(1, 0.5, 0.5);
             areac.get()->setup(box2d.getWorld(), ofGetWidth()*5/6, 0, 20);
-            circles.push_back(areac);
+//s            circles.push_back(areac);
         }
         
     }

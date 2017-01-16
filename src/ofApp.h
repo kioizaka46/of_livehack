@@ -27,7 +27,7 @@ public:
     bool bMouseForce;
     
     // my method
-    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getResultObj(int line_index, int x, int y);
+    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getCustomObj(int line_index, int x, int y);
     
     // sounds
     string music_file_name;
@@ -114,9 +114,6 @@ public:
     const int w_size = 1000;
     const int h_size = 800;
     
-    ofImage img;
+    ofImage snow_img;
     ofxCvHaarFinder finder;
-
-    ofImage image;
-
 };
