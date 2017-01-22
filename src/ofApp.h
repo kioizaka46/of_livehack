@@ -102,7 +102,10 @@ public:
     int                 drawCount = 0;
     int                 loopCnt = 1;
     const int           judgePoint = 50;
-    
+    const int           resultBeginTime = 53670;
+    const int           bonusBeginTime = 20780;
+    bool                bonusTimeFlag = false;
+    bool                resultTimeFlag = false;
     double tracking_interval;
     double diff_param;
     double number_of_object;
