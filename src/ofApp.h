@@ -31,7 +31,7 @@ public:
     bool bMouseForce;
     
     // my method
-    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getResultObj(int line_index, int x, int y);
+    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getCustomObj(int line_index, int x, int y);
     
     // sounds
     string music_file_name;
@@ -115,7 +115,10 @@ public:
     int                 drawCount = 0;
     int                 loopCnt = 1;
     const int           judgePoint = 50;
-    
+    const int           resultBeginTime = 53670;
+    const int           feverBeginTime = 20780;
+    bool                feverTimeFlag = false;
+    bool                resultTimeFlag = false;
     double tracking_interval;
     double diff_param;
     double number_of_object;
@@ -130,12 +133,16 @@ public:
     const int w_size = 1000;
     const int h_size = 800;
     
+    // fevertime
+    ofImage snow_img;
+    ofImage fevertime_img;
+    float xpos, ypos;
+    float xspeed;
+    bool flag_motion;
+    
     vector <ofImage> area_images;
     ofxBox2dCircle* area_circle_obj;
     
     ofImage img;
     ofxCvHaarFinder finder;
-
-    ofImage image;
-
 };

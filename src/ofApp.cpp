@@ -120,9 +120,18 @@ void ofApp::setup() {
     music.setPositionMS(2000);
     // -----------------------------------------
     
+    //snow
     finder.setup("haarcascade_frontalface_default.xml");
-    img.load("asyu.png");
+
+    snow_img.load("popcorn.png");
+    fevertime_img.load("fevertime.png");
+    fevertime_img.setAnchorPoint(0.5, 0.5);
+    xpos = ofGetWidth()/2;
+    ypos = ofGetHeight()/2;
+    xspeed = -15;
+
 }
+
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
@@ -147,10 +156,11 @@ vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     }
     return tmp_obj;
 }
-vector<shared_ptr<CustomParticle>> ofApp::getResultObj(int line_index, int x, int y){
+
+vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(int line_index, int x, int y){
     // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
-    string test = "POP";
+    string test = "t";
     tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, test, 0, font_size)));
     
     // set physics
@@ -160,20 +170,25 @@ vector<shared_ptr<CustomParticle>> ofApp::getResultObj(int line_index, int x, in
     }
     return tmp_obj;
 }
-
-
 //--------------------------------------------------------------
 void ofApp::update() {
     // move depend on phisic setting
     box2d.update();
-    
-    // thread update
-    threadUpdate();
-    
+
+ 
+    // set fevertime motion
+    xpos += xspeed;
+    flag_motion = false;
+    if(xpos < -1270){
+        flag_motion = true;
+    }
+
     // camera captured
     bool bNewFrame = false;
     vidGrabber.update();
     bNewFrame = vidGrabber.isFrameNew();
+    /*fevertime set*/ //TODO
+    feverTimeFlag = music.getPositionMS() > feverBeginTime;
     
     if (bNewFrame){
         colorImg.setFromPixels(vidGrabber.getPixels());
@@ -194,44 +209,74 @@ void ofApp::update() {
     }
     
     // result
-    if (music.getPositionMS() < 14000) {
-        // judge next lyric line started
-        int tail_index = viewable_particles.size() - 1;
+
+    //    if (music.getPositionMS() < 13678) {
+    // judge next lyric line started
+    int tail_index = viewable_particles.size() - 1;
+    
+    float music_pos = music.getPositionMS();
+    next_lyric_ms = sync_lyric_json["lines"][loaded_line_head]["time"].asDouble();
+    if (music_pos + margin_time > next_lyric_ms && loaded_line_head < sync_lyric_json["lines"].size()) {
+        // next lyric line add viewable obj
+        viewable_particles.push_back(getLineObj(loaded_line_head));
+        // set position of now lyric under next lyric
+        tail_index = viewable_particles.size() - 1;
         
-        float music_pos = music.getPositionMS();
-        next_lyric_ms = sync_lyric_json["lines"][loaded_line_head]["time"].asDouble();
-        if (music_pos + margin_time > next_lyric_ms && loaded_line_head < sync_lyric_json["lines"].size()) {
-            // next lyric line add viewable obj
-            viewable_particles.push_back(getLineObj(loaded_line_head));
-            // set position of now lyric under next lyric
-            tail_index = viewable_particles.size() - 1;
-            for(int i = 0; i < viewable_particles[tail_index].size(); i++){
-                viewable_particles[tail_index][i].get()->setPosition(
-                                                                     (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
-                                                                     start_point_y + font_size);
-            }
-            // line indenting
-            loaded_line_head++;
+        for(int i = 0; i < viewable_particles[tail_index].size() && !feverTimeFlag; i++){
+            viewable_particles[tail_index][i].get()->setPosition(
+                                                                 (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
+                                                                 start_point_y + font_size);
         }
-        
-        // fix now lyric position
-        if(tail_index >= 0){
-            for(int i = 0; i < viewable_particles[tail_index].size(); i++){
-                viewable_particles[tail_index][i].get()->setPosition(
-                                                                     (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
-                                                                     start_point_y);
+        // line indenting
+        loaded_line_head++;
+    }
+    
+    // fix now lyric position
+    if(tail_index >= 0){
+        for(int i = 0; i < viewable_particles[tail_index].size() && !feverTimeFlag; i++){
+            viewable_particles[tail_index][i].get()->setPosition(
+                                                                 (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
+                                                                 start_point_y);
+        }
+    }
+    
+    // change box2d bound size if change window size
+    if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
+        // update viewable particles position
+        for(int i = 0; i < viewable_particles.size() && !feverTimeFlag; i++) {
+            for (int j = 0; j < viewable_particles[i].size(); j++) {
+                viewable_particles[i][j].get()->setPosition(
+                                                            (ofGetWidth() - viewable_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
+                                                            start_point_y);
             }
         }
+        window_width = ofGetWidth();
+        window_height = ofGetHeight();
+        box2d.createBounds(0, 0, window_width, window_height);
         
-        // change box2d bound size if change window size
-        if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
-            // update viewable particles position
-            for(int i = 0; i < viewable_particles.size(); i++) {
-                for (int j = 0; j < viewable_particles[i].size(); j++) {
-                    viewable_particles[i][j].get()->setPosition(
-                                                                (ofGetWidth() - viewable_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
-                                                                start_point_y);
+        // capture camera view
+        vidGrabber.update();
+        
+        // check collision
+        float wall_right, wall_left, wall_celling, setp;
+        setp = 100;
+        for(int i = 0; i < viewable_particles.size(); i++){
+            for(int j = 0; j < viewable_particles[i].size(); j++){
+                double radius = viewable_particles[i][j].get()->getRadius();
+                wall_right = ofGetWidth() - radius;
+                wall_left = radius;
+                wall_celling = radius;
+                double x = viewable_particles[i][j].get()->getPosition().x;
+                double y = viewable_particles[i][j].get()->getPosition().y;
+                
+                if (x <= wall_right && y <= setp) {
+                    viewable_particles[i][j].get()->collisioned_count++;
+                } else if (x >= wall_left && y <= setp){
+                    viewable_particles[i][j].get()->collisioned_count++;
+                } else if (y >= wall_celling && y <= setp){
+                    viewable_particles[i][j].get()->collisioned_count++;
                 }
+
             }
             window_width = ofGetWidth();
             window_height = ofGetHeight();
@@ -275,6 +320,7 @@ void ofApp::update() {
                     viewable_particles[i][j].get()->opacity = 0;
                     viewable_particles[i][j].get()->destroy();
                     viewable_particles[i].erase(viewable_particles[i].begin() + j );
+
                     if(current_area_name == "A") {
                         area_a++;
                     } else if(current_area_name == "B") {
@@ -282,11 +328,13 @@ void ofApp::update() {
                     } else {
                         area_c++;
                     }
+
                 }
                 
             }
         }
     }
+    //    }
     
     //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     //  face detection
@@ -307,20 +355,36 @@ void ofApp::draw() {
     // draw snow
     ofSetLineWidth(3);
     ofNoFill();
-    
-    // draw face image
-    for(int i = 0; i < finder.blobs.size(); i++) {
-        ofRectangle cur = finder.blobs[i].boundingRect;
-        ofDrawRectangle(cur.x, cur.y, cur.width, cur.height);
-        img.draw(cur.x,cur.y,cur.width,cur.height);
+
+    int control_size_x = 80;
+    int control_size_y = 200;
+    if(feverTimeFlag) {
+        for(int i = 0; i < finder.blobs.size(); i++) {
+            ofRectangle cur = finder.blobs[i].boundingRect;
+            snow_img.draw(cur.x - control_size_x/2 ,cur.y - control_size_y/2 - 50, cur.width + control_size_x, cur.height + control_size_y);
+            // braw fever time popcorn
+            if(loopCnt % 15 == 0){
+                viewable_particles.push_back(getCustomObj(loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2));
+                int idx = viewable_particles[loaded_line_head].size() - 1;
+                viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%100 - rand()%100), 100);
+                viewable_particles[loaded_line_head][idx].get()->bake_level = 0.8;
+                viewable_particles[loaded_line_head][idx]->draw();
+                loaded_line_head++;
+            }
+        }
+    }
+    ofSetColor(255, 255, 255);
+    fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
+    if(flag_motion) {
+        fevertime_img.draw(ofGetWidth()-250, 15, 230, 80);
+
     }
     
     // draw viewable lyrics
     for(int i = 0; i < viewable_particles.size(); i++){
         for(int j = 0; j < viewable_particles[i].size(); j++){
             viewable_particles[i][j]->draw();
-            viewable_particles[i][j];
-            
+            //viewable_particles[i][j];
         }
     }
     
@@ -350,6 +414,7 @@ void ofApp::draw() {
     }
     
     if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
+
     if (5000 < music.getPositionMS() && music.getPositionMS() < 14000) {
         
         // draw current area image
@@ -487,6 +552,72 @@ void ofApp::keyPressed(int key) {
     if (key == 'g'){
         box2d.createBounds(0, 0, window_width, window_height);
     }
+    // result
+    float area_a, area_b, area_c, pop_a, pop_b, pop_c;
+    if (key == 'm') {
+        // judgement (area_a, area_b, area_c : 200, 150, 70)
+        area_a = 70;
+        area_b = 20;
+        area_c = 150;
+        float sort[3] = {area_a, area_b, area_c};
+        std::unordered_map<std::string, int> popcorns = {
+            {"area_a", area_a},
+            {"area_b", area_b},
+            {"area_c", area_c},
+        };
+        std::unordered_map<std::string, int> rank = {
+            {"area_a", 0},
+            {"area_b", 0},
+            {"area_c", 0},
+        };
+        for(int i = 0; i < 2; i++) {
+            for(int j = 0; j < 2; j++){
+                if(sort[j] < sort[j+1]){
+                    int change = sort[j];
+                    sort[j] = sort[j+1];
+                    sort[j+1] = change;
+                }
+            }
+        }
+        // define rank
+        for (auto i = 0; i < 3; ++i) {
+            if (sort[i] == popcorns["area_a"]) {
+                rank["area_a"] = i + 1;
+            } else if ( sort[i] == popcorns["area_b"]) {
+                rank["area_b"] = i + 1;
+            } else if ( sort[i] == popcorns["area_c"]) {
+                rank["area_c"] = i + 1;
+            }
+        }
+        printf("\nrank[area_a] : %d(%d)\nrank[area_b] : %d(%d)\nrank[area_c] : %d(%d)\n\n", rank["area_a"], popcorns["area_a"], rank["area_b"], popcorns["area_b"], rank["area_c"], popcorns["area_c"]);
+        
+        // drop popcorn
+        pop_a = 10 / rank["area_a"];
+        pop_b = 10 / rank["area_b"];
+        pop_c = 10 / rank["area_c"];
+        
+        // area_A
+        for (int i = 0; i < pop_a; i++) {
+            shared_ptr<ofxBox2dCircle> areaa = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
+            areaa.get()->setPhysics(100, 0.5, 0.5);
+            areaa.get()->setup(box2d.getWorld(), ofGetWidth()/6, 0, 20);
+            //s            circles.push_back(areaa);
+        }
+        // area_B
+        for (int i = 0; i < pop_b; i++) {
+            shared_ptr<ofxBox2dCircle> areab = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
+            areab.get()->setPhysics(1, 0.5, 0.5);
+            areab.get()->setup(box2d.getWorld(), ofGetWidth()/2, 0, 20);
+            //s            circles.push_back(areab);
+        }
+        // area_C
+        for (int i = 0; i < pop_c; i++) {
+            shared_ptr<ofxBox2dCircle> areac = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
+            areac.get()->setPhysics(1, 0.5, 0.5);
+            areac.get()->setup(box2d.getWorld(), ofGetWidth()*5/6, 0, 20);
+            //s            circles.push_back(areac);
+        }
+        
     if (key == 'l') {
         music.setPositionMS(music.getPositionMS() + 100);
     }
