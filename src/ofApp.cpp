@@ -194,7 +194,7 @@ void ofApp::update() {
     }
     
     // result
-    if (music.getPositionMS() < 13678) {
+    if (music.getPositionMS() < 14000) {
         // judge next lyric line started
         int tail_index = viewable_particles.size() - 1;
         
@@ -222,7 +222,7 @@ void ofApp::update() {
                                                                      start_point_y);
             }
         }
-    
+        
         // change box2d bound size if change window size
         if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
             // update viewable particles position
@@ -240,7 +240,7 @@ void ofApp::update() {
             // capture camera view
             vidGrabber.update();
         }
-    
+        
         // check collision
         float wall_right, wall_left, wall_celling, setp;
         setp = 100;
@@ -287,7 +287,7 @@ void ofApp::update() {
             }
         }
     }
-
+    
     //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     //  face detection
     if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
@@ -350,20 +350,36 @@ void ofApp::draw() {
     }
     
     if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
-    
+    if (5000 < music.getPositionMS() && music.getPositionMS() < 14000) {
+        
+        // draw current area image
+        int img_index;
+        if(current_area_name == "A"){
+            img_index = 0;
+        }else if(current_area_name == "B"){
+            img_index = 1;
+        }else{
+            img_index = 2;
+        }
+        ofSetColor(255,255,255);
+        area_images[img_index].draw((ofGetWidth() - (area_images[img_index].getWidth() * area_img_expanded))/2, ofGetHeight() - (area_images[img_index].getHeight() * area_img_expanded), area_images[img_index].getWidth() * area_img_expanded, area_images[img_index].getHeight() * area_img_expanded);
+    }
     
     // draw result
-//    if (music.getPositionMS() == 13678) {
-    if (false) {
+    if (14100 <= music.getPositionMS() && music.getPositionMS() <= 14200) {
+        // if (false) {
         // clear all
         drawResult();
     }
-//    if (music.getPositionMS() >= 13678) {
-    if (false) {
+    if (14400 <= music.getPositionMS()) {
+        //if (false) {
         int rank1, rank2, rank3;
+        area_a = 200;
+        area_b = 50;
+        area_c = 10;
         
         // drop popcone in partitioned area
-        if (music.getPositionMS()  < 22000) {
+        if (music.getPositionMS()  < 14600 && music.getPositionMS() % 30 == 0) {
             for (int i = 0; i < pop_a; i++) {
                 result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             }
@@ -413,9 +429,9 @@ void ofApp::draw() {
         }
         
         // drop popcorn
-        pop_a = 5 / rank["area_a"];
-        pop_b = 5 / rank["area_b"];
-        pop_c = 5 / rank["area_c"];
+        pop_a = (int)(5 / rank["area_a"]);
+        pop_b = (int)(5 / rank["area_b"]);
+        pop_c = (int)(5 / rank["area_c"]);
         
         if (rank["area_a"] == 1) { rank1 = ofGetWidth()*1/6-50;}
         else if (rank["area_b"] == 1) { rank1 = ofGetWidth()*1/2-50;}
@@ -426,6 +442,8 @@ void ofApp::draw() {
         if (rank["area_a"] == 3) { rank3 = ofGetWidth()*1/6-50;}
         else if (rank["area_b"] == 3) { rank3 = ofGetWidth()*1/2-50;}
         else if (rank["area_c"] == 3) { rank3 = ofGetWidth()*5/6-50;}
+        
+        ofSetColor(255, 255, 255, 255);
         first.draw(rank1, 120, 100, 70);
         second.draw(rank2, 120, 100, 70);
         third.draw(rank3, 120, 100, 70);
@@ -436,25 +454,10 @@ void ofApp::draw() {
         textB.draw(ofGetWidth()*1/2-50, ofGetHeight() - 105, 150, 105);
         textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
     }
-    
-    // draw current area image
-    int img_index;
-    if(current_area_name == "A"){
-        img_index = 0;
-    }else if(current_area_name == "B"){
-        img_index = 1;
-    }else{
-        img_index = 2;
-    }
-    ofSetColor(255,255,255);
-    area_images[img_index].draw((ofGetWidth() - (area_images[img_index].getWidth() * area_img_expanded))/2, ofGetHeight() - (area_images[img_index].getHeight() * area_img_expanded), area_images[img_index].getWidth() * area_img_expanded, area_images[img_index].getHeight() * area_img_expanded);
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
-    if (key == 'l'){
-        music.setPositionMS(music.getPositionMS() + 100);
-    }
     if (key == 'a') {
         for(int i = 0; i < viewable_particles.size() - 1; i++){
             for(int j = 0; j < viewable_particles[i].size(); j++){
@@ -484,71 +487,11 @@ void ofApp::keyPressed(int key) {
     if (key == 'g'){
         box2d.createBounds(0, 0, window_width, window_height);
     }
-    // result
-    if (key == 'm') {
-        // judgement (area_a, area_b, area_c : 200, 150, 70)
-        area_a = 70;
-        area_b = 20;
-        area_c = 150;
-        float sort[3] = {area_a, area_b, area_c};
-        std::unordered_map<std::string, int> popcorns = {
-            {"area_a", area_a},
-            {"area_b", area_b},
-            {"area_c", area_c},
-        };
-        std::unordered_map<std::string, int> rank = {
-            {"area_a", 0},
-            {"area_b", 0},
-            {"area_c", 0},
-        };
-        for(int i = 0; i < 2; i++) {
-            for(int j = 0; j < 2; j++){
-                if(sort[j] < sort[j+1]){
-                    int change = sort[j];
-                    sort[j] = sort[j+1];
-                    sort[j+1] = change;
-                }
-            }
-        }
-        // define rank
-        for (auto i = 0; i < 3; ++i) {
-            if (sort[i] == popcorns["area_a"]) {
-                rank["area_a"] = i + 1;
-            } else if ( sort[i] == popcorns["area_b"]) {
-                rank["area_b"] = i + 1;
-            } else if ( sort[i] == popcorns["area_c"]) {
-                rank["area_c"] = i + 1;
-            }
-        }
-        printf("\nrank[area_a] : %d(%d)\nrank[area_b] : %d(%d)\nrank[area_c] : %d(%d)\n\n", rank["area_a"], popcorns["area_a"], rank["area_b"], popcorns["area_b"], rank["area_c"], popcorns["area_c"]);
-        
-        // drop popcorn
-        pop_a = 10 / rank["area_a"];
-        pop_b = 10 / rank["area_b"];
-        pop_c = 10 / rank["area_c"];
-        
-        // area_A
-        for (int i = 0; i < pop_a; i++) {
-            shared_ptr<ofxBox2dCircle> areaa = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
-            areaa.get()->setPhysics(100, 0.5, 0.5);
-            areaa.get()->setup(box2d.getWorld(), ofGetWidth()/6, 0, 20);
-            circles.push_back(areaa);
-        }
-        // area_B
-        for (int i = 0; i < pop_b; i++) {
-            shared_ptr<ofxBox2dCircle> areab = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
-            areab.get()->setPhysics(1, 0.5, 0.5);
-            areab.get()->setup(box2d.getWorld(), ofGetWidth()/2, 0, 20);
-            circles.push_back(areab);
-        }
-        // area_C
-        for (int i = 0; i < pop_c; i++) {
-            shared_ptr<ofxBox2dCircle> areac = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
-            areac.get()->setPhysics(1, 0.5, 0.5);
-            areac.get()->setup(box2d.getWorld(), ofGetWidth()*5/6, 0, 20);
-            circles.push_back(areac);
-        }
-        
+    if (key == 'l') {
+        music.setPositionMS(music.getPositionMS() + 100);
+    }
+    if (key == 'k') {
+        music.setPositionMS(music.getPositionMS() + 500);
     }
 }
 
@@ -651,13 +594,14 @@ void ofApp::drawResult() {
     yaneA.load("images/yane_A.png");
     yaneB.load("images/yane_B.png");
     yaneC.load("images/yane_C.png");
-    textA.load("images/text_A.png");
-    textB.load("images/text_B.png");
-    textC.load("images/text_C.png");
+    textA.load("areas/text_A.png");
+    textB.load("areas/text_B.png");
+    textC.load("areas/text_C.png");
     first.load("images/1st.png");
     second.load("images/2nd.png");
     third.load("images/3rd.png");;
     // make frame
+    ofSetColor(255, 255, 255, 0.0);
     cupLine.addVertex(10, 0);
     cupLine.addVertex(20, 0);
     cupLine.addVertex(20, ofGetHeight()-10);
@@ -683,6 +627,7 @@ void ofApp::drawResult() {
     cupLine.addVertex(ofGetWidth()-10, ofGetHeight());
     cupLine.addVertex(10, ofGetHeight());
     cupLine.close();
+    cupLine.resize(0);
     cup = ofPtr<ofxBox2dPolygon>(new ofxBox2dPolygon);
     cup.get()->addVertexes(cupLine);
     cup.get()->triangulatePoly(10);
