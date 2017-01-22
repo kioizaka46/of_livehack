@@ -6,9 +6,8 @@ void ofApp::setup() {
     json_file_name      = "sync_koi_hoshinogen.json";
     music_file_name     = "koi_hoshinogen.mp3";
     
-    
     // draw setting
-    font_size           = 40;
+    font_size           = 30;
     word_margin         = 20;
     radius_fix_pram     = 0.6;
     margin_time         = 300;
@@ -37,6 +36,19 @@ void ofApp::setup() {
     diff_param          = 1.5;
     tracking_interval   = 1.5;
     
+    // thread setting
+    sensor_interval_ms  = 10000;
+    rotate_degree       = 0;
+    current_area_name   = "A";
+    next_execute_time   = ofGetElapsedTimeMillis();
+    servo_thread.sending(rotate_degree);
+    
+    // rank setting
+    area_a = 0;
+    area_b = 0;
+    area_c = 0;
+    area_img_expanded = 0.3;
+    
     // load images
     ofDirectory dir;
     ofDisableArbTex();
@@ -63,6 +75,13 @@ void ofApp::setup() {
     
     ofSetWindowShape(window_width, window_height);
     
+    // area circle
+    int area_num = dir.listDir("areas");
+    for (int i=0; i<area_num; i++) {
+        area_images.push_back(ofImage(dir.getPath(i)));
+    }
+    area_circle_obj = new ofxBox2dCircle();
+    area_circle_obj->setup(box2d.getWorld(), ofGetWidth()/2, ofGetHeight(), area_images[0].getWidth() * (area_img_expanded * 0.75));
     
     // setup camera
     vidGrabber.setVerbose(true);
@@ -75,10 +94,9 @@ void ofApp::setup() {
             ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
         }
     }
-    vidGrabber.setDeviceID(0);
+    vidGrabber.setDeviceID(1);
     vidGrabber.setDesiredFrameRate(40);
     vidGrabber.initGrabber(window_width, window_height);
-    
     
     // load font
     font.loadFont(font_file_name, font_size, true, true);
@@ -98,11 +116,12 @@ void ofApp::setup() {
     music.setMultiPlay(true);
     music.play();
     
-    music.setPositionMS(1000);
+    // --- [DEBUG ONLY] Start Music Position ---
+    music.setPositionMS(2000);
+    // -----------------------------------------
     
     finder.setup("haarcascade_frontalface_default.xml");
     img.load("asyu.png");
-    
 }
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     // create line obj
@@ -148,6 +167,9 @@ void ofApp::update() {
     // move depend on phisic setting
     box2d.update();
     
+    // thread update
+    threadUpdate();
+    
     // camera captured
     bool bNewFrame = false;
     vidGrabber.update();
@@ -170,6 +192,7 @@ void ofApp::update() {
         // also, find holes is set to true so we will get interior contours as well....
         contourFinder.findContours(grayDiff, 20, (width*height)/3, 10, true);  // find holes
     }
+    
     // result
     if (music.getPositionMS() < 13678) {
         // judge next lyric line started
@@ -199,7 +222,7 @@ void ofApp::update() {
                                                                      start_point_y);
             }
         }
-        
+    
         // change box2d bound size if change window size
         if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
             // update viewable particles position
@@ -216,52 +239,57 @@ void ofApp::update() {
             
             // capture camera view
             vidGrabber.update();
-            
-            // check collision
-            float wall_right, wall_left, wall_celling, setp;
-            setp = 100;
-            for(int i = 0; i < viewable_particles.size(); i++){
-                for(int j = 0; j < viewable_particles[i].size(); j++){
-                    double radius = viewable_particles[i][j].get()->getRadius();
-                    wall_right = ofGetWidth() - radius;
-                    wall_left = radius;
-                    wall_celling = radius;
-                    double x = viewable_particles[i][j].get()->getPosition().x;
-                    double y = viewable_particles[i][j].get()->getPosition().y;
-                    
-                    if (x <= wall_right && y <= setp) {
-                        viewable_particles[i][j].get()->collisioned_count++;
-                    } else if (x >= wall_left && y <= setp){
-                        viewable_particles[i][j].get()->collisioned_count++;
-                    } else if (y >= wall_celling && y <= setp){
-                        viewable_particles[i][j].get()->collisioned_count++;
-                    }
-                    
-                    if (viewable_particles[i][j].get()->collisioned_count == 50) {
-                        viewable_particles[i][j].get()->opacity = 0.7;
-                    } else if (viewable_particles[i][j].get()->collisioned_count == 100) {
-                        viewable_particles[i][j].get()->opacity = 0.3;
-                    } else if (viewable_particles[i][j].get()->collisioned_count == 150){;
-                        viewable_particles[i][j].get()->opacity = 1.0;
-                        viewable_particles[i][j].get()->bake_level = 0.5;
-                    } else if (viewable_particles[i][j].get()->collisioned_count == 170) {
-                        viewable_particles[i][j].get()->opacity = 1.0;
-                        viewable_particles[i][j].get()->bake_level = 0.7;
-                    } else if (viewable_particles[i][j].get()->collisioned_count > 200) {
-                        viewable_particles[i][j].get()->opacity = 0;
-                        viewable_particles[i][j].get()->destroy();
-                        viewable_particles[i].erase(viewable_particles[i].begin() + j );
-                    }
-                    
+        }
+    
+        // check collision
+        float wall_right, wall_left, wall_celling, setp;
+        setp = 100;
+        for(int i = 0; i < viewable_particles.size(); i++){
+            for(int j = 0; j < viewable_particles[i].size(); j++){
+                double radius = viewable_particles[i][j].get()->getRadius();
+                wall_right = ofGetWidth() - radius;
+                wall_left = radius;
+                wall_celling = radius;
+                double x = viewable_particles[i][j].get()->getPosition().x;
+                double y = viewable_particles[i][j].get()->getPosition().y;
+                
+                if (x <= wall_right && y <= setp) {
+                    viewable_particles[i][j].get()->collisioned_count++;
+                } else if (x >= wall_left && y <= setp){
+                    viewable_particles[i][j].get()->collisioned_count++;
+                } else if (y >= wall_celling && y <= setp){
+                    viewable_particles[i][j].get()->collisioned_count++;
                 }
+                
+                if (viewable_particles[i][j].get()->collisioned_count == 50) {
+                    viewable_particles[i][j].get()->opacity = 0.7;
+                } else if (viewable_particles[i][j].get()->collisioned_count == 100) {
+                    viewable_particles[i][j].get()->opacity = 0.3;
+                } else if (viewable_particles[i][j].get()->collisioned_count == 150){;
+                    viewable_particles[i][j].get()->opacity = 1.0;
+                    viewable_particles[i][j].get()->bake_level = 0.5;
+                } else if (viewable_particles[i][j].get()->collisioned_count == 170) {
+                    viewable_particles[i][j].get()->opacity = 1.0;
+                    viewable_particles[i][j].get()->bake_level = 0.7;
+                } else if (viewable_particles[i][j].get()->collisioned_count > 200) {
+                    viewable_particles[i][j].get()->opacity = 0;
+                    viewable_particles[i][j].get()->destroy();
+                    viewable_particles[i].erase(viewable_particles[i].begin() + j );
+                    if(current_area_name == "A") {
+                        area_a++;
+                    } else if(current_area_name == "B") {
+                        area_b++;
+                    } else {
+                        area_c++;
+                    }
+                }
+                
             }
         }
     }
-    
-    
+
     //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     //  face detection
-    
     if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
     loopCnt++;
     
@@ -269,15 +297,10 @@ void ofApp::update() {
     ofSoundUpdate();
 }
 
-
 //--------------------------------------------------------------
 void ofApp::draw() {
     // draw camera caputured
     // TODO reverse capture image
-    area_a = 70;
-    area_b = 2000;
-    area_c = 150;
-    
     ofSetColor(255, 255, 255, 255 * camera_draw_opacity);
     vidGrabber.draw(0,0);
     
@@ -285,6 +308,7 @@ void ofApp::draw() {
     ofSetLineWidth(3);
     ofNoFill();
     
+    // draw face image
     for(int i = 0; i < finder.blobs.size(); i++) {
         ofRectangle cur = finder.blobs[i].boundingRect;
         ofDrawRectangle(cur.x, cur.y, cur.width, cur.height);
@@ -300,6 +324,7 @@ void ofApp::draw() {
         }
     }
     
+    // TODO What's doing here ??
     for(int i = 0; i < result_viewable_particles.size(); i++){
         for(int j = 0; j < result_viewable_particles[i].size(); j++){
             result_viewable_particles[i][j].get()->bake_level = 0.7;
@@ -316,6 +341,7 @@ void ofApp::draw() {
     motionCount = contourFinder.nBlobs;
     
     drawCount++;
+    
     // judge jump motion
     if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval) {
         lastJumpTime = time(NULL);
@@ -325,58 +351,15 @@ void ofApp::draw() {
     
     if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
     
-    // clear
-    // RESULT
-    if (music.getPositionMS() == 13678) {
-        for(int i = 0; i < viewable_particles.size(); i++){
-            for(int j = 0; j < viewable_particles[i].size(); j++){
-                viewable_particles[i][j].get()->destroy();
-                viewable_particles.erase(viewable_particles.begin());
-            }
-        }
-        // image images
-        yaneA.load("images/yane_A.png");
-        yaneB.load("images/yane_B.png");
-        yaneC.load("images/yane_C.png");
-        textA.load("images/text_A.png");
-        textB.load("images/text_B.png");
-        textC.load("images/text_C.png");
-        first.load("images/1st.png");
-        second.load("images/2nd.png");
-        third.load("images/3rd.png");;
-        // make frame
-        cupLine.addVertex(10, 0);
-        cupLine.addVertex(20, 0);
-        cupLine.addVertex(20, ofGetHeight()-10);
-        cupLine.addVertex(ofGetWidth()/3-20, ofGetHeight()-10);
-        cupLine.addVertex(ofGetWidth()/3-20, 0);
-        cupLine.addVertex(ofGetWidth()/3-10, 0);
-        cupLine.addVertex(ofGetWidth()/3-10, ofGetHeight());
-        cupLine.addVertex(ofGetWidth()/3, ofGetHeight());
-        cupLine.addVertex(ofGetWidth()/3, 0);
-        cupLine.addVertex(ofGetWidth()/3+10, 0);
-        cupLine.addVertex(ofGetWidth()/3+10, ofGetHeight()-10);
-        cupLine.addVertex((ofGetWidth()*2/3)-20, ofGetHeight()-10);
-        cupLine.addVertex((ofGetWidth()*2/3)-20, 0);
-        cupLine.addVertex((ofGetWidth()*2/3)-10, 0);
-        cupLine.addVertex((ofGetWidth()*2/3)-10, ofGetHeight());
-        cupLine.addVertex((ofGetWidth()*2/3), ofGetHeight());
-        cupLine.addVertex((ofGetWidth()*2/3), 0);
-        cupLine.addVertex((ofGetWidth()*2/3)+10, 0);
-        cupLine.addVertex((ofGetWidth()*2/3)+10, ofGetHeight()-10);
-        cupLine.addVertex(ofGetWidth()-20, ofGetHeight()-10);
-        cupLine.addVertex(ofGetWidth()-20, 0);
-        cupLine.addVertex(ofGetWidth()-10, 0);
-        cupLine.addVertex(ofGetWidth()-10, ofGetHeight());
-        cupLine.addVertex(10, ofGetHeight());
-        cupLine.close();
-        cup = ofPtr<ofxBox2dPolygon>(new ofxBox2dPolygon);
-        cup.get()->addVertexes(cupLine);
-        cup.get()->triangulatePoly(10);
-        cup.get()->setPhysics(0.0, 0.5, 0.1);
-        cup.get()->create(box2d.getWorld());
+    
+    // draw result
+//    if (music.getPositionMS() == 13678) {
+    if (false) {
+        // clear all
+        drawResult();
     }
-    if (music.getPositionMS() >= 13678) {
+//    if (music.getPositionMS() >= 13678) {
+    if (false) {
         int rank1, rank2, rank3;
         
         // drop popcone in partitioned area
@@ -390,7 +373,6 @@ void ofApp::draw() {
             for (int i = 0; i < pop_c; i++) {
                 result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
             }
-            
         }
         
         // make frame
@@ -418,6 +400,7 @@ void ofApp::draw() {
                 }
             }
         }
+        
         // define rank
         for (auto i = 0; i < 3; ++i) {
             if (sort[i] == popcorns["area_a"]) {
@@ -454,10 +437,24 @@ void ofApp::draw() {
         textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
     }
     
+    // draw current area image
+    int img_index;
+    if(current_area_name == "A"){
+        img_index = 0;
+    }else if(current_area_name == "B"){
+        img_index = 1;
+    }else{
+        img_index = 2;
+    }
+    ofSetColor(255,255,255);
+    area_images[img_index].draw((ofGetWidth() - (area_images[img_index].getWidth() * area_img_expanded))/2, ofGetHeight() - (area_images[img_index].getHeight() * area_img_expanded), area_images[img_index].getWidth() * area_img_expanded, area_images[img_index].getHeight() * area_img_expanded);
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key) {
+    if (key == 'l'){
+        music.setPositionMS(music.getPositionMS() + 100);
+    }
     if (key == 'a') {
         for(int i = 0; i < viewable_particles.size() - 1; i++){
             for(int j = 0; j < viewable_particles[i].size(); j++){
@@ -488,7 +485,6 @@ void ofApp::keyPressed(int key) {
         box2d.createBounds(0, 0, window_width, window_height);
     }
     // result
-    float area_a, area_b, area_c, pop_a, pop_b, pop_c;
     if (key == 'm') {
         // judgement (area_a, area_b, area_c : 200, 150, 70)
         area_a = 70;
@@ -617,4 +613,79 @@ void ofApp::jumpPopcones(int d) {
             viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
         }
     }
+}
+
+//--------------------------------------------------------------
+void ofApp::threadUpdate() {
+    if(ofGetElapsedTimeMillis() >= next_execute_time) {
+        execute_flag = true;
+    }
+    if(execute_flag){
+        if(rotate_degree == 0){
+            rotate_degree = 90;
+            current_area_name = "A";
+        }else if(rotate_degree == 90){
+            rotate_degree = 180;
+            current_area_name = "B";
+        }else{
+            rotate_degree = 0;
+            current_area_name = "C";
+        }
+        servo_thread.sending(rotate_degree);
+        
+        next_execute_time += sensor_interval_ms;
+        execute_flag = false;
+    }
+}
+
+// -------------------------------------------------------------
+void ofApp::drawResult() {
+    // clear all popcones
+    for(int i = 0; i < viewable_particles.size(); i++){
+        for(int j = 0; j < viewable_particles[i].size(); j++){
+            viewable_particles[i][j].get()->destroy();
+            viewable_particles.erase(viewable_particles.begin());
+        }
+    }
+    // image images
+    yaneA.load("images/yane_A.png");
+    yaneB.load("images/yane_B.png");
+    yaneC.load("images/yane_C.png");
+    textA.load("images/text_A.png");
+    textB.load("images/text_B.png");
+    textC.load("images/text_C.png");
+    first.load("images/1st.png");
+    second.load("images/2nd.png");
+    third.load("images/3rd.png");;
+    // make frame
+    cupLine.addVertex(10, 0);
+    cupLine.addVertex(20, 0);
+    cupLine.addVertex(20, ofGetHeight()-10);
+    cupLine.addVertex(ofGetWidth()/3-20, ofGetHeight()-10);
+    cupLine.addVertex(ofGetWidth()/3-20, 0);
+    cupLine.addVertex(ofGetWidth()/3-10, 0);
+    cupLine.addVertex(ofGetWidth()/3-10, ofGetHeight());
+    cupLine.addVertex(ofGetWidth()/3, ofGetHeight());
+    cupLine.addVertex(ofGetWidth()/3, 0);
+    cupLine.addVertex(ofGetWidth()/3+10, 0);
+    cupLine.addVertex(ofGetWidth()/3+10, ofGetHeight()-10);
+    cupLine.addVertex((ofGetWidth()*2/3)-20, ofGetHeight()-10);
+    cupLine.addVertex((ofGetWidth()*2/3)-20, 0);
+    cupLine.addVertex((ofGetWidth()*2/3)-10, 0);
+    cupLine.addVertex((ofGetWidth()*2/3)-10, ofGetHeight());
+    cupLine.addVertex((ofGetWidth()*2/3), ofGetHeight());
+    cupLine.addVertex((ofGetWidth()*2/3), 0);
+    cupLine.addVertex((ofGetWidth()*2/3)+10, 0);
+    cupLine.addVertex((ofGetWidth()*2/3)+10, ofGetHeight()-10);
+    cupLine.addVertex(ofGetWidth()-20, ofGetHeight()-10);
+    cupLine.addVertex(ofGetWidth()-20, 0);
+    cupLine.addVertex(ofGetWidth()-10, 0);
+    cupLine.addVertex(ofGetWidth()-10, ofGetHeight());
+    cupLine.addVertex(10, ofGetHeight());
+    cupLine.close();
+    cup = ofPtr<ofxBox2dPolygon>(new ofxBox2dPolygon);
+    cup.get()->addVertexes(cupLine);
+    cup.get()->triangulatePoly(10);
+    cup.get()->setPhysics(0.0, 0.5, 0.1);
+    cup.get()->create(box2d.getWorld());
 }
