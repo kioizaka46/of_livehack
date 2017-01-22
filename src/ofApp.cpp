@@ -188,7 +188,8 @@ void ofApp::update() {
     vidGrabber.update();
     bNewFrame = vidGrabber.isFrameNew();
     /*fevertime set*/ //TODO
-    feverTimeFlag = music.getPositionMS() > feverBeginTime;
+    feverTimeFlag = music.getPositionMS() > feverBeginTime && music.getPositionMS() < resultBeginTime;
+    cout << feverTimeFlag << endl;
     
     if (bNewFrame){
         colorImg.setFromPixels(vidGrabber.getPixels());
@@ -360,6 +361,7 @@ void ofApp::draw() {
     if(feverTimeFlag) {
         for(int i = 0; i < finder.blobs.size(); i++) {
             ofRectangle cur = finder.blobs[i].boundingRect;
+            ofSetColor(255, 255, 255);
             snow_img.draw(cur.x - control_size_x/2 ,cur.y - control_size_y/2 - 50, cur.width + control_size_x, cur.height + control_size_y);
             // braw fever time popcorn
             if(loopCnt % 15 == 0){
@@ -414,7 +416,7 @@ void ofApp::draw() {
     
     if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
 
-    if (5000 < music.getPositionMS() && music.getPositionMS() < 14000) {
+    if (music.getPositionMS() < resultBeginTime) {
         
         // draw current area image
         int img_index;
@@ -426,16 +428,22 @@ void ofApp::draw() {
             img_index = 2;
         }
         ofSetColor(255,255,255);
+        cout << "point 0" << endl;
         area_images[img_index].draw((ofGetWidth() - (area_images[img_index].getWidth() * area_img_expanded))/2, ofGetHeight() - (area_images[img_index].getHeight() * area_img_expanded), area_images[img_index].getWidth() * area_img_expanded, area_images[img_index].getHeight() * area_img_expanded);
+        feverTimeFlag = false;
     }
     
     // draw result
-    if (14100 <= music.getPositionMS() && music.getPositionMS() <= 14200) {
+    if (resultBeginTime <= music.getPositionMS() && music.getPositionMS() <= resultBeginTime + 100) {
         // if (false) {
         // clear all
+        cout << "point 1" << endl;
+
         drawResult();
     }
-    if (14400 <= music.getPositionMS()) {
+    if (resultBeginTime + 200 <= music.getPositionMS()) {
+        cout << "point 2" << endl;
+
         //if (false) {
         int rank1, rank2, rank3;
         area_a = 200;
@@ -443,7 +451,7 @@ void ofApp::draw() {
         area_c = 10;
         
         // drop popcone in partitioned area
-        if (music.getPositionMS()  < 14600 && music.getPositionMS() % 30 == 0) {
+        if (music.getPositionMS()  <  resultBeginTime + 10000 && music.getPositionMS() % 30 == 0) {
             for (int i = 0; i < pop_a; i++) {
                 result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             }

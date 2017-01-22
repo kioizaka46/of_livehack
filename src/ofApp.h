@@ -115,8 +115,8 @@ public:
     int                 drawCount = 0;
     int                 loopCnt = 1;
     const int           judgePoint = 50;
-    const int           resultBeginTime = 53670;
-    const int           feverBeginTime = 20780;
+    const int           resultBeginTime = 10670;
+    const int           feverBeginTime = 5780;
     bool                feverTimeFlag = false;
     bool                resultTimeFlag = false;
     double tracking_interval;
