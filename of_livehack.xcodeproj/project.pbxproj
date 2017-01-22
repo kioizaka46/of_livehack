@@ -68,6 +68,7 @@
 		70ACBBD5DBE2725EC1E99CCF /* b2CircleContact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C1A083AC6F4F462EBC57565 /* b2CircleContact.cpp */; };
 		71C677669B75120425DE19D4 /* b2DynamicTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5738A60D76F5B706CB90C164 /* b2DynamicTree.cpp */; };
 		72A929D3561B8232A182ABFC /* ofxOscBundle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 65EEFA3DA3526E9CDD9C21F9 /* ofxOscBundle.cpp */; };
+		751D45BE1E2A1E2A00316E15 /* ServoControllerThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 751D45BC1E2A1E2A00316E15 /* ServoControllerThread.cpp */; };
 		7ADB04AF67C568EAFAEBA546 /* ofxKinectExtras.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 01438542609FC64F1EC60EEB /* ofxKinectExtras.cpp */; };
 		7E1AAAB7A2F92465251AE49E /* b2PolygonAndCircleContact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 804B4F86C3DAA1E51794D893 /* b2PolygonAndCircleContact.cpp */; };
 		837220E80EB56CD44AD27F2A /* ofxSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 15F2C6477A769C03A56D1401 /* ofxSlider.cpp */; };
@@ -353,6 +354,8 @@
 		7414DA8EE4DE1570C05C5CA8 /* b2CircleShape.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.cpp; fileEncoding = 30; name = b2CircleShape.cpp; path = ../../../addons/ofxBox2d/libs/Box2D/Collision/Shapes/b2CircleShape.cpp; sourceTree = SOURCE_ROOT; };
 		7456407A3E8BFF75FE8BD142 /* triangle.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = triangle.h; path = ../../../addons/ofxBox2d/libs/triangle/triangle.h; sourceTree = SOURCE_ROOT; };
 		74889E354F64911B56A1CAD1 /* warp.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = warp.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/gpu/device/warp.hpp; sourceTree = SOURCE_ROOT; };
+		751D45BC1E2A1E2A00316E15 /* ServoControllerThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ServoControllerThread.cpp; sourceTree = "<group>"; };
+		751D45BD1E2A1E2A00316E15 /* ServoControllerThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ServoControllerThread.h; sourceTree = "<group>"; };
 		758F19335D4E46A5E0DE449F /* kdtree_single_index.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = kdtree_single_index.h; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/flann/kdtree_single_index.h; sourceTree = SOURCE_ROOT; };
 		7673F0AA19794A4C9517CF14 /* ts.hpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ts.hpp; path = ../../../addons/ofxOpenCv/libs/opencv/include/opencv2/ts/ts.hpp; sourceTree = SOURCE_ROOT; };
 		7689F8A0F3D0B7635A8C3104 /* ofxOscArg.h */ = {isa = PBXFileReference; explicitFileType = sourcecode.c.h; fileEncoding = 30; name = ofxOscArg.h; path = ../../../addons/ofxOsc/src/ofxOscArg.h; sourceTree = SOURCE_ROOT; };
@@ -1727,6 +1730,8 @@
 				3C29CA0B3A65FF1EF9E8AED4 /* CustomParticle.h */,
 				E764D9CB826310EB7F340C20 /* Detection.cpp */,
 				FFA56E7B214A7C127F668073 /* Detection.h */,
+				751D45BC1E2A1E2A00316E15 /* ServoControllerThread.cpp */,
+				751D45BD1E2A1E2A00316E15 /* ServoControllerThread.h */,
 			);
 			path = src;
 			sourceTree = SOURCE_ROOT;
@@ -1973,6 +1978,7 @@
 				483FA4F6D5FA6422C559B1F5 /* ofxAssimpMeshHelper.cpp in Sources */,
 				8DED5056525646FA71980866 /* ofxAssimpModelLoader.cpp in Sources */,
 				B8846EF8E504895A4A9EFEC0 /* ofxAssimpTexture.cpp in Sources */,
+				751D45BE1E2A1E2A00316E15 /* ServoControllerThread.cpp in Sources */,
 				B16C89D9CA996CA8FD860D81 /* ofxBox2d.cpp in Sources */,
 				F2FF2F9D6699B4B328CB6BE3 /* ofxBox2dBaseShape.cpp in Sources */,
 				AE9254BC31C3409899D28DC9 /* ofxBox2dCircle.cpp in Sources */,

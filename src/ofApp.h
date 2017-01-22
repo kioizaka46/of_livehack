@@ -8,6 +8,8 @@
 #include "ofxJSON.h"
 #include "CustomParticle.h"
 #include "Detection.h"
+#include "ServoControllerThread.h"
+
 
 // -------------------------------------------------
 class ofApp : public ofBaseApp {
@@ -23,6 +25,8 @@ public:
     void mousePressed(int x, int y, int button);
     void mouseReleased(int x, int y, int button);
     void resized(int w, int h);
+    
+    void drawResult();
     
     bool bMouseForce;
     
@@ -91,6 +95,15 @@ public:
     ofxCvContourFinder 	contourFinder;
     ofxCvContourFinder 	lastContourFinder;
     
+    // servo controller thread various
+    int rotate_degree;
+    ServoControllerThread servo_thread;
+    int sensor_interval_ms;
+    int next_execute_time;
+    bool execute_flag;
+    void threadUpdate();
+    
+    
     void jumpPopcones(int d);
     
     int 				threshold;
@@ -112,8 +125,11 @@ public:
     
     const double INF = (1 << 27);
     
-
+    // for result ranking view
     float area_a, area_b, area_c, pop_a, pop_b, pop_c;
+    string current_area_name;
+    double area_img_expanded;
+    
     const int w_size = 1000;
     const int h_size = 800;
     
@@ -124,5 +140,9 @@ public:
     float xspeed;
     bool flag_motion;
     
+    vector <ofImage> area_images;
+    ofxBox2dCircle* area_circle_obj;
+    
+    ofImage img;
     ofxCvHaarFinder finder;
 };
