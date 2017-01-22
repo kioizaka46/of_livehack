@@ -190,6 +190,9 @@ void ofApp::update() {
     /*fevertime set*/ //TODO
     feverTimeFlag = music.getPositionMS() > feverBeginTime && music.getPositionMS() < resultBeginTime;
     cout << feverTimeFlag << endl;
+    resultTimeFlag = music.getPositionMS() > resultBeginTime;
+    cout << resultTimeFlag << endl;
+
     
     if (bNewFrame){
         colorImg.setFromPixels(vidGrabber.getPixels());
@@ -358,6 +361,7 @@ void ofApp::draw() {
 
     int control_size_x = 80;
     int control_size_y = 200;
+    feverTimeFlag = music.getPositionMS() > feverBeginTime && music.getPositionMS() < resultBeginTime;
     if(feverTimeFlag) {
         for(int i = 0; i < finder.blobs.size(); i++) {
             ofRectangle cur = finder.blobs[i].boundingRect;
@@ -367,7 +371,10 @@ void ofApp::draw() {
             if(loopCnt % 15 == 0){
                 viewable_particles.push_back(getCustomObj(loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2));
                 int idx = viewable_particles[loaded_line_head].size() - 1;
+                cout << "bef" << endl;
                 viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%100 - rand()%100), 100);
+                cout << "aff" << endl;
+
                 viewable_particles[loaded_line_head][idx].get()->bake_level = 0.8;
                 viewable_particles[loaded_line_head][idx]->draw();
                 loaded_line_head++;
@@ -408,13 +415,13 @@ void ofApp::draw() {
     drawCount++;
     
     // judge jump motion
-    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval) {
+    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval && !resultTimeFlag) {
         lastJumpTime = time(NULL);
         int d = motionVector(contourFinder, lastContourFinder);
         jumpPopcones(d);
     }
     
-    if(contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
+    if (contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
 
     if (music.getPositionMS() < resultBeginTime) {
         
@@ -451,7 +458,7 @@ void ofApp::draw() {
         area_c = 10;
         
         // drop popcone in partitioned area
-        if (music.getPositionMS()  <  resultBeginTime + 10000 && music.getPositionMS() % 30 == 0) {
+        if (music.getPositionMS()  <  resultBeginTime + 10000 && music.getPositionMS() % 300 == 0) {
             for (int i = 0; i < pop_a; i++) {
                 result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             }
@@ -692,7 +699,10 @@ void ofApp::jumpPopcones(int d) {
         for(int j = 0; j < viewable_particles[i].size(); j++){
             float vec_x = viewable_particles[i][j].get()->getPosition().x;
             float vec_y = viewable_particles[i][j].get()->getPosition().y;
+            cout << "bef1" << endl;
             viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
+            cout << "aff1" << endl;
+
         }
     }
 }
