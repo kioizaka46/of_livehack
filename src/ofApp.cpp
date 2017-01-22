@@ -314,6 +314,7 @@ void ofApp::draw() {
             }
         }
     }
+    ofSetColor(255, 255, 255);
     fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
     if(flag_motion) {
         fevertime_img.draw(ofGetWidth()-250, 15, 230, 80);
