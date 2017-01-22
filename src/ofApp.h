@@ -31,7 +31,7 @@ public:
     bool bMouseForce;
     
     // my method
-    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getCustomObj(vector<ofImage> popcorne_images, int line_index, int x, int y);
+    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getCustomObj(int line_index, int x, int y);
     
     // sounds
     string music_file_name;
@@ -69,8 +69,7 @@ public:
     ofxBox2dEdge edgeLine;
     
     vector <ofImage> images;
-    vector <ofImage> images_fevertime;
-    
+   
     // result
     ofImage yaneA, yaneB, yaneC, textA, textB, textC, first, second, third;
     vector<shared_ptr<ofxBox2dCircle> > circles, pop ;
@@ -115,11 +114,19 @@ public:
     int                 lastJumpTime = 0;
     int                 drawCount = 0;
     int                 loopCnt = 1;
+    int                 drop_count_a = 0;
+    int                 drop_count_b = 0;
+    int                 drop_count_c = 0;
     const int           judgePoint = 50;
-    const int           resultBeginTime = 30670;
+    const int           resultBeginTime = 51100;
     const int           feverBeginTime = 20780;
     bool                feverTimeFlag = false;
     bool                resultTimeFlag = false;
+    bool                resultTimeFlagment = false;
+    bool                resultCalcuratedA = false;
+    bool                resultCalcuratedB = false;
+    bool                resultCalcuratedC = false;
+    bool                isCalcurating = false;
     double tracking_interval;
     double diff_param;
     double number_of_object;
@@ -127,7 +134,8 @@ public:
     const double INF = (1 << 27);
     
     // for result ranking view
-    float area_a, area_b, area_c, pop_a, pop_b, pop_c;
+    int area_a, area_b, area_c, pop_a, pop_b, pop_c;
+    int rank1, rank2, rank3;
     string current_area_name;
     double area_img_expanded;
     
@@ -140,7 +148,6 @@ public:
     float xpos, ypos;
     float xspeed;
     bool flag_motion;
-    
     vector <ofImage> area_images;
     ofxBox2dCircle* area_circle_obj;
     

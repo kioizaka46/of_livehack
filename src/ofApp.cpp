@@ -52,19 +52,12 @@ void ofApp::setup() {
     area_c = 0;
     area_img_expanded = 0.3;
     
-    // load popcorn images
+    // load images
     ofDirectory dir;
     ofDisableArbTex();
-    int n = dir.listDir("popcornes");
+    int n = dir.listDir("popcones");
     for (int i=0; i<n; i++) {
         images.push_back(ofImage(dir.getPath(i)));
-    }
-    
-    // load fevertime popcorn images
-    ofDirectory dir_f;
-    int nf = dir_f.listDir("popcornes_mini");
-    for (int i=0; i<nf; i++) {
-        images_fevertime.push_back(ofImage(dir_f.getPath(i)));
     }
     
     // draw setting
@@ -132,13 +125,14 @@ void ofApp::setup() {
     
     //snow
     finder.setup("haarcascade_frontalface_default.xml");
-
-    snow_img.load("popcorn_snow.png");
+    
+    snow_img.load("popcorn.png");
     fevertime_img.load("fevertime.png");
+    fevertime_img.setAnchorPoint(0.5, 0.5);
     xpos = ofGetWidth()/2;
     ypos = ofGetHeight()/2;
-    xspeed = -30;
-
+    xspeed = -15;
+    
 }
 
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
@@ -166,11 +160,11 @@ vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     return tmp_obj;
 }
 
-vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(vector<ofImage> popcorn_images, int line_index, int x, int y){
+vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(int line_index, int x, int y){
     // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
     string test = "t";
-    tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(popcorn_images, test, 0, font_size)));
+    tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, test, 0, font_size)));
     
     // set physics
     for(int i = 0; i < tmp_obj.size(); i++) {
@@ -183,15 +177,17 @@ vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(vector<ofImage> popcorn_i
 void ofApp::update() {
     // move depend on phisic setting
     box2d.update();
-
- 
+    
+    // thread update
+    threadUpdate();
+    
     // set fevertime motion
     xpos += xspeed;
     flag_motion = false;
-    if(xpos < -3500){
+    if(xpos < -1270){
         flag_motion = true;
     }
-
+    
     // camera captured
     bool bNewFrame = false;
     vidGrabber.update();
@@ -199,7 +195,10 @@ void ofApp::update() {
     /*fevertime set*/ //TODO
     feverTimeFlag = music.getPositionMS() > feverBeginTime && music.getPositionMS() < resultBeginTime;
     resultTimeFlag = music.getPositionMS() > resultBeginTime;
-   
+    resultTimeFlagment = music.getPositionMS() < resultBeginTime;
+    // cout << resultTimeFlagment << endl;
+    
+    
     if (bNewFrame){
         colorImg.setFromPixels(vidGrabber.getPixels());
         
@@ -219,7 +218,7 @@ void ofApp::update() {
     }
     
     // result
-
+    
     // judge next lyric line started
     int tail_index = viewable_particles.size() - 1;
     
@@ -287,21 +286,21 @@ void ofApp::update() {
                 viewable_particles[i][j].get()->collisioned_count++;
             }
             
-            if (viewable_particles[i][j].get()->collisioned_count == 50) {
+            if (viewable_particles[i][j].get()->collisioned_count == 5) {
                 viewable_particles[i][j].get()->opacity = 0.7;
-            } else if (viewable_particles[i][j].get()->collisioned_count == 100) {
+            } else if (viewable_particles[i][j].get()->collisioned_count == 10) {
                 viewable_particles[i][j].get()->opacity = 0.3;
-            } else if (viewable_particles[i][j].get()->collisioned_count == 150){;
+            } else if (viewable_particles[i][j].get()->collisioned_count == 15){;
                 viewable_particles[i][j].get()->opacity = 1.0;
                 viewable_particles[i][j].get()->bake_level = 0.5;
-            } else if (viewable_particles[i][j].get()->collisioned_count == 170) {
+            } else if (viewable_particles[i][j].get()->collisioned_count == 20) {
                 viewable_particles[i][j].get()->opacity = 1.0;
                 viewable_particles[i][j].get()->bake_level = 0.7;
-            } else if (viewable_particles[i][j].get()->collisioned_count > 200) {
+            } else if (viewable_particles[i][j].get()->collisioned_count > 80) {
                 viewable_particles[i][j].get()->opacity = 0;
                 viewable_particles[i][j].get()->destroy();
                 viewable_particles[i].erase(viewable_particles[i].begin() + j );
-
+                
                 if(current_area_name == "A") {
                     area_a++;
                 } else if(current_area_name == "B") {
@@ -313,6 +312,7 @@ void ofApp::update() {
         }
     }
     
+    //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     //  face detection
     if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
     loopCnt++;
@@ -323,6 +323,7 @@ void ofApp::update() {
 
 //--------------------------------------------------------------
 void ofApp::draw() {
+    printf("time : %d\n", music.getPositionMS());
     // draw camera caputured
     // TODO reverse capture image
     ofSetColor(255, 255, 255, 255 * camera_draw_opacity);
@@ -331,7 +332,7 @@ void ofApp::draw() {
     // draw snow
     ofSetLineWidth(3);
     ofNoFill();
-
+    
     int control_size_x = 80;
     int control_size_y = 200;
     feverTimeFlag = music.getPositionMS() > feverBeginTime && music.getPositionMS() < resultBeginTime;
@@ -342,9 +343,10 @@ void ofApp::draw() {
             snow_img.draw(cur.x - control_size_x/2 ,cur.y - control_size_y/2 - 50, cur.width + control_size_x, cur.height + control_size_y);
             // braw fever time popcorn
             if(loopCnt % 15 == 0){
-                viewable_particles.push_back(getCustomObj(images_fevertime, loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2 - 150));
+                viewable_particles.push_back(getCustomObj(loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2));
                 int idx = viewable_particles[loaded_line_head].size() - 1;
-                viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%50 - rand()%50), 20);
+                viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%100 - rand()%100), 100);
+                
                 viewable_particles[loaded_line_head][idx].get()->bake_level = 0.8;
                 viewable_particles[loaded_line_head][idx]->draw();
                 loaded_line_head++;
@@ -352,11 +354,10 @@ void ofApp::draw() {
         }
     }
     ofSetColor(255, 255, 255);
-    //    fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
-    fevertime_img.draw(xpos, 0, ofGetWidth() + 2500, ofGetHeight());
+    fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
     if(flag_motion) {
-        fevertime_img.draw(ofGetWidth()-250, 15, 230, 70);
-
+        fevertime_img.draw(ofGetWidth()-250, 15, 230, 80);
+        
     }
     
     // draw viewable lyrics
@@ -370,7 +371,7 @@ void ofApp::draw() {
     // TODO What's doing here ??
     for(int i = 0; i < result_viewable_particles.size(); i++){
         for(int j = 0; j < result_viewable_particles[i].size(); j++){
-            result_viewable_particles[i][j].get()->bake_level = 0.5;
+            result_viewable_particles[i][j].get()->bake_level = 0.7;
             result_viewable_particles[i][j]->draw();
         }
     }
@@ -382,7 +383,6 @@ void ofApp::draw() {
         }
     }
     motionCount = contourFinder.nBlobs;
-    
     drawCount++;
     
     // judge jump motion
@@ -391,91 +391,67 @@ void ofApp::draw() {
         int d = motionVector(contourFinder, lastContourFinder);
         jumpPopcones(d);
     }
-    
-    if (contourFinder.nBlobs > 0) lastContourFinder = contourFinder;
-
-    if (music.getPositionMS() < resultBeginTime) {
-        
-        // draw current area image
-        int img_index;
-        if(current_area_name == "A"){
-            img_index = 0;
-        }else if(current_area_name == "B"){
-            img_index = 1;
-        }else{
-            img_index = 2;
+    if (12750 <= music.getPositionMS() && music.getPositionMS() <= 211000) {
+        if (music.getPositionMS() <= 77033 || 88039 <= music.getPositionMS()) {
+            
+            // draw current area image
+            int img_index;
+            if(current_area_name == "A"){
+                img_index = 0;
+            }else if(current_area_name == "B"){
+                img_index = 1;
+            }else{
+                img_index = 2;
+            }
+            ofSetColor(255,255,255);
+            area_images[img_index].draw((ofGetWidth() - (area_images[img_index].getWidth() * area_img_expanded))/2, ofGetHeight() - (area_images[img_index].getHeight() * area_img_expanded), area_images[img_index].getWidth() * area_img_expanded, area_images[img_index].getHeight() * area_img_expanded);
         }
-        ofSetColor(255,255,255);
-        area_images[img_index].draw((ofGetWidth() - (area_images[img_index].getWidth() * area_img_expanded))/2, ofGetHeight() - (area_images[img_index].getHeight() * area_img_expanded), area_images[img_index].getWidth() * area_img_expanded, area_images[img_index].getHeight() * area_img_expanded);
-        feverTimeFlag = false;
+    }
+    
+    
+    //reflesh befor result
+    if ((resultBeginTime - 4000) <= music.getPositionMS() && music.getPositionMS() <= resultBeginTime) {
+        box2d.createBounds(0, 0, 0, 0);
     }
     
     // draw result
-    if (resultBeginTime <= music.getPositionMS() && music.getPositionMS() <= resultBeginTime + 100) {
-        // if (false) {
-        // clear all
-   
-        drawResult();
-    }
-    if (resultBeginTime + 200 <= music.getPositionMS()) {
-   
-        //if (false) {
-        int rank1, rank2, rank3;
-        // drop popcone in partitioned area
-        if (music.getPositionMS()  <  resultBeginTime + 10000 && music.getPositionMS() % 50 == 0) {
-            for (int i = 0; i < pop_a; i++) {
-                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
+    if (resultBeginTime < music.getPositionMS()) {
+        // isCalcurate
+        if (!isCalcurating) {
+            box2d.createBounds(0, 0, window_width, window_height);
+            printf("area_a = %d, area_b = %d, area_c = %d\n", area_a, area_b, area_c);
+            std::unordered_map<std::string, int> rank = {
+                {"area_a", 0},
+                {"area_b", 0},
+                {"area_c", 0},
+            };
+            vector<pair<float,string> > pv;
+            pv.push_back(make_pair(area_a,"A"));
+            pv.push_back(make_pair(area_b,"B"));
+            pv.push_back(make_pair(area_c,"C"));
+            sort(pv.begin(),pv.end());
+            for(int i = 0 ; i < 3 ; i++) {
+                if (pv[i].second == "A") {
+                    rank["area_a"] = i + 1;
+                } else if (pv[i].second == "B") {
+                    rank["area_b"] = i + 1;
+                } else if (pv[i].second == "C") {
+                    rank["area_c"] = i + 1;
+                }
             }
-            for (int i = 0; i < pop_b; i++) {
-                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
-            }
-            for (int i = 0; i < pop_c; i++) {
-                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
-            }
+            if (rank["area_a"] == 1) { rank1 = ofGetWidth()*1/6-50;}
+            else if (rank["area_b"] == 1) { rank1 = ofGetWidth()*1/2-50;}
+            else if (rank["area_c"] == 1) { rank1 = ofGetWidth()*5/6-50;}
+            if (rank["area_a"] == 2) { rank2 = ofGetWidth()*1/6-50;}
+            else if (rank["area_b"] == 2) { rank2 = ofGetWidth()*1/2-50;}
+            else if (rank["area_c"] == 2) { rank2 = ofGetWidth()*5/6-50;}
+            if (rank["area_a"] == 3) { rank3 = ofGetWidth()*1/6-50;}
+            else if (rank["area_b"] == 3) { rank3 = ofGetWidth()*1/2-50;}
+            else if (rank["area_c"] == 3) { rank3 = ofGetWidth()*5/6-50;}
+            isCalcurating = true;
+            drawResult();
+            printf("areaA_rank = %d, areaA_rank = %d, areaA_rank = %d\n", rank["area_a"], rank["area_b"], rank["area_c"]);
         }
-        
-        // make frame
-        groundLine.draw();
-        cupLine.draw();
-        
-        
-        std::unordered_map<std::string, int> rank = {
-            {"area_a", 0},
-            {"area_b", 0},
-            {"area_c", 0},
-        };
-        
-        vector<pair<float,string> > pv;
-        pv.push_back(make_pair(area_a,"A"));
-        pv.push_back(make_pair(area_b,"B"));
-        pv.push_back(make_pair(area_c,"C"));
-        sort(pv.begin(),pv.end());
-        
-        for(int i = 0 ; i < 3 ; i++) {
-            if (pv[i].second == "A") {
-                rank["area_a"] = i + 1;
-            } else if (pv[i].second == "B") {
-                rank["area_b"] = i + 1;
-            } else if (pv[i].second == "C") {
-                rank["area_c"] = i + 1;
-            }
-        }
-        // drop popcorn
-        pop_a = (int)(10 / (rank["area_a"]+1));
-        pop_b = (int)(10 / (rank["area_b"]+1));
-        pop_c = (int)(10 / (rank["area_c"]+1));
-        //
-        
-        if (rank["area_a"] == 1) { rank1 = ofGetWidth()*1/6-50;}
-        else if (rank["area_b"] == 1) { rank1 = ofGetWidth()*1/2-50;}
-        else if (rank["area_c"] == 1) { rank1 = ofGetWidth()*5/6-50;}
-        if (rank["area_a"] == 2) { rank2 = ofGetWidth()*1/6-50;}
-        else if (rank["area_b"] == 2) { rank2 = ofGetWidth()*1/2-50;}
-        else if (rank["area_c"] == 2) { rank2 = ofGetWidth()*5/6-50;}
-        if (rank["area_a"] == 3) { rank3 = ofGetWidth()*1/6-50;}
-        else if (rank["area_b"] == 3) { rank3 = ofGetWidth()*1/2-50;}
-        else if (rank["area_c"] == 3) { rank3 = ofGetWidth()*5/6-50;}
-        
         ofSetColor(255, 255, 255, 255);
         first.draw(rank1, 120, 100, 70);
         second.draw(rank2, 120, 100, 70);
@@ -486,6 +462,31 @@ void ofApp::draw() {
         textA.draw(ofGetWidth()*1/6-50, ofGetHeight() - 105, 150, 105);
         textB.draw(ofGetWidth()*1/2-50, ofGetHeight() - 105, 150, 105);
         textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
+        // drop pop
+        if (!resultCalcuratedA) {
+            result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
+            drop_count_a ++;
+            printf("drop_count_a = %d\n", drop_count_a);
+            if (area_a == drop_count_a) {
+                resultCalcuratedA = true;
+            }
+        }
+        if (!resultCalcuratedB) {
+            result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
+            drop_count_b ++;
+            printf("drop_count_b = %d\n", drop_count_b);
+            if (area_b == drop_count_b) {
+                resultCalcuratedB = true;
+            }
+        }
+        if (!resultCalcuratedC) {
+            result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
+            drop_count_c ++;
+            printf("drop_count_c = %d\n", drop_count_c);
+            if (area_c == drop_count_c) {
+                resultCalcuratedC = true;
+            }
+        }
     }
 }
 
@@ -524,7 +525,7 @@ void ofApp::keyPressed(int key) {
         music.setPositionMS(music.getPositionMS() + 100);
     }
     if (key == 'k') {
-        music.setPositionMS(music.getPositionMS() + 500);
+        music.setPositionMS(music.getPositionMS() + 1000);
     }
 }
 
@@ -587,6 +588,7 @@ void ofApp::jumpPopcones(int d) {
             float vec_x = viewable_particles[i][j].get()->getPosition().x;
             float vec_y = viewable_particles[i][j].get()->getPosition().y;
             viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
+            
         }
     }
 }
@@ -634,7 +636,6 @@ void ofApp::drawResult() {
     second.load("images/2nd.png");
     third.load("images/3rd.png");;
     // make frame
-    ofSetColor(255, 255, 255, 0.0);
     cupLine.addVertex(10, 0);
     cupLine.addVertex(20, 0);
     cupLine.addVertex(20, ofGetHeight()-10);
@@ -660,7 +661,6 @@ void ofApp::drawResult() {
     cupLine.addVertex(ofGetWidth()-10, ofGetHeight());
     cupLine.addVertex(10, ofGetHeight());
     cupLine.close();
-    cupLine.resize(0);
     cup = ofPtr<ofxBox2dPolygon>(new ofxBox2dPolygon);
     cup.get()->addVertexes(cupLine);
     cup.get()->triangulatePoly(10);
