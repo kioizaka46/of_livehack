@@ -59,7 +59,7 @@ void ofApp::setup() {
     
     // load fevertime popcorn images
     ofDirectory dir_f;
-    int nf = dir_f.listDir("popcornes_fevertime");
+    int nf = dir_f.listDir("popcornes_mini");
     for (int i=0; i<nf; i++) {
         images_fevertime.push_back(ofImage(dir_f.getPath(i)));
     }
@@ -184,7 +184,6 @@ void ofApp::update() {
  
     // set fevertime motion
     xpos += xspeed;
-//    cout << "testest:" << xpos << endl;
     flag_motion = false;
     if(xpos < -3500){
         flag_motion = true;
@@ -343,7 +342,6 @@ void ofApp::update() {
     }
     //    }
     
-    //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     //  face detection
     if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
     loopCnt++;
