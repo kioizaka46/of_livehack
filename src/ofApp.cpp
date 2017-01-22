@@ -52,12 +52,19 @@ void ofApp::setup() {
     area_c = 0;
     area_img_expanded = 0.3;
     
-    // load images
+    // load popcorn images
     ofDirectory dir;
     ofDisableArbTex();
     int n = dir.listDir("popcones");
     for (int i=0; i<n; i++) {
         images.push_back(ofImage(dir.getPath(i)));
+    }
+    
+    // load fevertime popcorn images
+    ofDirectory dir_f;
+    int nf = dir_f.listDir("popcornes_mini");
+    for (int i=0; i<nf; i++) {
+        images_fevertime.push_back(ofImage(dir_f.getPath(i)));
     }
     
     // draw setting
@@ -126,12 +133,11 @@ void ofApp::setup() {
     //snow
     finder.setup("haarcascade_frontalface_default.xml");
 
-    snow_img.load("popcorn.png");
+    snow_img.load("popcorn_snow.png");
     fevertime_img.load("fevertime.png");
-    fevertime_img.setAnchorPoint(0.5, 0.5);
     xpos = ofGetWidth()/2;
     ypos = ofGetHeight()/2;
-    xspeed = -15;
+    xspeed = -30;
 
 }
 
@@ -160,11 +166,11 @@ vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     return tmp_obj;
 }
 
-vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(int line_index, int x, int y){
+vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(vector<ofImage> popcorn_images, int line_index, int x, int y){
     // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
     string test = "t";
-    tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, test, 0, font_size)));
+    tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(popcorn_images, test, 0, font_size)));
     
     // set physics
     for(int i = 0; i < tmp_obj.size(); i++) {
@@ -182,7 +188,7 @@ void ofApp::update() {
     // set fevertime motion
     xpos += xspeed;
     flag_motion = false;
-    if(xpos < -1270){
+    if(xpos < -3500){
         flag_motion = true;
     }
 
@@ -192,11 +198,8 @@ void ofApp::update() {
     bNewFrame = vidGrabber.isFrameNew();
     /*fevertime set*/ //TODO
     feverTimeFlag = music.getPositionMS() > feverBeginTime && music.getPositionMS() < resultBeginTime;
-    cout << feverTimeFlag << endl;
     resultTimeFlag = music.getPositionMS() > resultBeginTime;
-    cout << resultTimeFlag << endl;
-
-    
+   
     if (bNewFrame){
         colorImg.setFromPixels(vidGrabber.getPixels());
         
@@ -310,7 +313,6 @@ void ofApp::update() {
         }
     }
     
-    //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     //  face detection
     if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
     loopCnt++;
@@ -340,12 +342,9 @@ void ofApp::draw() {
             snow_img.draw(cur.x - control_size_x/2 ,cur.y - control_size_y/2 - 50, cur.width + control_size_x, cur.height + control_size_y);
             // braw fever time popcorn
             if(loopCnt % 15 == 0){
-                viewable_particles.push_back(getCustomObj(loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2));
+                viewable_particles.push_back(getCustomObj(images_fevertime,loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2 - 150));
                 int idx = viewable_particles[loaded_line_head].size() - 1;
-                cout << "bef" << endl;
-                viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%100 - rand()%100), 100);
-                cout << "aff" << endl;
-
+                viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%50 - rand()%50), 20);
                 viewable_particles[loaded_line_head][idx].get()->bake_level = 0.8;
                 viewable_particles[loaded_line_head][idx]->draw();
                 loaded_line_head++;
@@ -353,9 +352,10 @@ void ofApp::draw() {
         }
     }
     ofSetColor(255, 255, 255);
-    fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
+    //    fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
+    fevertime_img.draw(xpos, 0, ofGetWidth() + 2500, ofGetHeight());
     if(flag_motion) {
-        fevertime_img.draw(ofGetWidth()-250, 15, 230, 80);
+        fevertime_img.draw(ofGetWidth()-250, 15, 230, 70);
 
     }
     
@@ -406,7 +406,6 @@ void ofApp::draw() {
             img_index = 2;
         }
         ofSetColor(255,255,255);
-        cout << "point 0" << endl;
         area_images[img_index].draw((ofGetWidth() - (area_images[img_index].getWidth() * area_img_expanded))/2, ofGetHeight() - (area_images[img_index].getHeight() * area_img_expanded), area_images[img_index].getWidth() * area_img_expanded, area_images[img_index].getHeight() * area_img_expanded);
         feverTimeFlag = false;
     }
@@ -415,26 +414,23 @@ void ofApp::draw() {
     if (resultBeginTime <= music.getPositionMS() && music.getPositionMS() <= resultBeginTime + 100) {
         // if (false) {
         // clear all
-        cout << "point 1" << endl;
-
+   
         drawResult();
     }
     if (resultBeginTime + 200 <= music.getPositionMS()) {
-        cout << "point 2" << endl;
-
+   
         //if (false) {
         int rank1, rank2, rank3;
-        cout << "cnt:" << pop_a << " " << pop_b << " " << pop_c << endl;
         // drop popcone in partitioned area
         if (music.getPositionMS()  <  resultBeginTime + 10000 && music.getPositionMS() % 50 == 0) {
             for (int i = 0; i < pop_a; i++) {
-                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_b; i++) {
-                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_c; i++) {
-                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
             }
         }
         
@@ -464,7 +460,6 @@ void ofApp::draw() {
                 rank["area_c"] = i + 1;
             }
         }
-        cout << rank["area_a"] << " " << rank["area_b"] << " " << rank["area_c"] << endl;
         // drop popcorn
         pop_a = (int)(10 / (rank["area_a"]+1));
         pop_b = (int)(10 / (rank["area_b"]+1));
@@ -591,10 +586,7 @@ void ofApp::jumpPopcones(int d) {
         for(int j = 0; j < viewable_particles[i].size(); j++){
             float vec_x = viewable_particles[i][j].get()->getPosition().x;
             float vec_y = viewable_particles[i][j].get()->getPosition().y;
-            cout << "bef1" << endl;
             viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
-            cout << "aff1" << endl;
-
         }
     }
 }

@@ -31,7 +31,7 @@ public:
     bool bMouseForce;
     
     // my method
-    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getCustomObj(int line_index, int x, int y);
+    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getCustomObj(vector<ofImage> popcorne_images, int line_index, int x, int y);
     
     // sounds
     string music_file_name;
@@ -69,7 +69,8 @@ public:
     ofxBox2dEdge edgeLine;
     
     vector <ofImage> images;
-   
+    vector <ofImage> images_fevertime;
+    
     // result
     ofImage yaneA, yaneB, yaneC, textA, textB, textC, first, second, third;
     vector<shared_ptr<ofxBox2dCircle> > circles, pop ;
