@@ -26,6 +26,8 @@ public:
     void mouseReleased(int x, int y, int button);
     void resized(int w, int h);
     
+    void drawResult();
+    
     bool bMouseForce;
     
     // my method
@@ -99,6 +101,8 @@ public:
     int sensor_interval_ms;
     int next_execute_time;
     bool execute_flag;
+    void threadUpdate();
+    
     
     void jumpPopcones(int d);
     
@@ -120,8 +124,14 @@ public:
     
     // for result ranking view
     float area_a, area_b, area_c, pop_a, pop_b, pop_c;
+    string current_area_name;
+    double area_img_expanded;
+    
     const int w_size = 1000;
     const int h_size = 800;
+    
+    vector <ofImage> area_images;
+    ofxBox2dCircle* area_circle_obj;
     
     ofImage img;
     ofxCvHaarFinder finder;

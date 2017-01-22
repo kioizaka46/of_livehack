@@ -10,9 +10,6 @@ public:
     bool isFrameNew();
     void draw();
     
-    bool execute_flag;
-    int next_execute_time;
-    
 private:
     void threadedFunction();
     ofThreadChannel<int> toSending;
