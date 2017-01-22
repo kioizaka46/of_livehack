@@ -49,12 +49,19 @@ void ofApp::setup() {
     area_c = 0;
     area_img_expanded = 0.3;
     
-    // load images
+    // load popcorn images
     ofDirectory dir;
     ofDisableArbTex();
     int n = dir.listDir("popcones");
     for (int i=0; i<n; i++) {
         images.push_back(ofImage(dir.getPath(i)));
+    }
+    
+    // load fevertime popcorn images
+    ofDirectory dir_f;
+    int nf = dir_f.listDir("popcornes_fevertime");
+    for (int i=0; i<nf; i++) {
+        images_fevertime.push_back(ofImage(dir_f.getPath(i)));
     }
     
     // draw setting
@@ -123,12 +130,11 @@ void ofApp::setup() {
     //snow
     finder.setup("haarcascade_frontalface_default.xml");
 
-    snow_img.load("popcorn.png");
+    snow_img.load("popcorn_snow.png");
     fevertime_img.load("fevertime.png");
-    fevertime_img.setAnchorPoint(0.5, 0.5);
     xpos = ofGetWidth()/2;
     ypos = ofGetHeight()/2;
-    xspeed = -15;
+    xspeed = -30;
 
 }
 
@@ -157,11 +163,11 @@ vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     return tmp_obj;
 }
 
-vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(int line_index, int x, int y){
+vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(vector<ofImage> popcorn_images, int line_index, int x, int y){
     // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
     string test = "t";
-    tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, test, 0, font_size)));
+    tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(popcorn_images, test, 0, font_size)));
     
     // set physics
     for(int i = 0; i < tmp_obj.size(); i++) {
@@ -178,8 +184,9 @@ void ofApp::update() {
  
     // set fevertime motion
     xpos += xspeed;
+//    cout << "testest:" << xpos << endl;
     flag_motion = false;
-    if(xpos < -1270){
+    if(xpos < -3500){
         flag_motion = true;
     }
 
@@ -357,7 +364,7 @@ void ofApp::draw() {
     ofNoFill();
 
     int control_size_x = 80;
-    int control_size_y = 200;
+    int control_size_y = 250;
     if(feverTimeFlag) {
         for(int i = 0; i < finder.blobs.size(); i++) {
             ofRectangle cur = finder.blobs[i].boundingRect;
@@ -365,9 +372,9 @@ void ofApp::draw() {
             snow_img.draw(cur.x - control_size_x/2 ,cur.y - control_size_y/2 - 50, cur.width + control_size_x, cur.height + control_size_y);
             // braw fever time popcorn
             if(loopCnt % 15 == 0){
-                viewable_particles.push_back(getCustomObj(loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2));
+                viewable_particles.push_back(getCustomObj(images_fevertime,loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2 - 150));
                 int idx = viewable_particles[loaded_line_head].size() - 1;
-                viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%100 - rand()%100), 100);
+                viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%50 - rand()%50), 20);
                 viewable_particles[loaded_line_head][idx].get()->bake_level = 0.8;
                 viewable_particles[loaded_line_head][idx]->draw();
                 loaded_line_head++;
@@ -375,9 +382,10 @@ void ofApp::draw() {
         }
     }
     ofSetColor(255, 255, 255);
-    fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
+    //    fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
+    fevertime_img.draw(xpos, 0, ofGetWidth() + 2500, ofGetHeight());
     if(flag_motion) {
-        fevertime_img.draw(ofGetWidth()-250, 15, 230, 80);
+        fevertime_img.draw(ofGetWidth()-250, 15, 230, 70);
 
     }
     
@@ -453,13 +461,13 @@ void ofApp::draw() {
         // drop popcone in partitioned area
         if (music.getPositionMS()  <  resultBeginTime + 10000 && music.getPositionMS() % 30 == 0) {
             for (int i = 0; i < pop_a; i++) {
-                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_b; i++) {
-                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_c; i++) {
-                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
             }
         }
         
