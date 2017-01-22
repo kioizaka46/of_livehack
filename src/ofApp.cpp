@@ -1,4 +1,7 @@
 #include "ofApp.h"
+#include "map"
+#include "algorithm"
+using namespace std;
 
 //--------------------------------------------------------------
 void ofApp::setup() {
@@ -214,7 +217,6 @@ void ofApp::update() {
     
     // result
 
-    //    if (music.getPositionMS() < 13678) {
     // judge next lyric line started
     int tail_index = viewable_particles.size() - 1;
     
@@ -260,84 +262,53 @@ void ofApp::update() {
         
         // capture camera view
         vidGrabber.update();
-        
-        // check collision
-        float wall_right, wall_left, wall_celling, setp;
-        setp = 100;
-        for(int i = 0; i < viewable_particles.size(); i++){
-            for(int j = 0; j < viewable_particles[i].size(); j++){
-                double radius = viewable_particles[i][j].get()->getRadius();
-                wall_right = ofGetWidth() - radius;
-                wall_left = radius;
-                wall_celling = radius;
-                double x = viewable_particles[i][j].get()->getPosition().x;
-                double y = viewable_particles[i][j].get()->getPosition().y;
-                
-                if (x <= wall_right && y <= setp) {
-                    viewable_particles[i][j].get()->collisioned_count++;
-                } else if (x >= wall_left && y <= setp){
-                    viewable_particles[i][j].get()->collisioned_count++;
-                } else if (y >= wall_celling && y <= setp){
-                    viewable_particles[i][j].get()->collisioned_count++;
-                }
-
-            }
-            window_width = ofGetWidth();
-            window_height = ofGetHeight();
-            box2d.createBounds(0, 0, window_width, window_height);
+    }
+    
+    // check collision
+    float wall_right, wall_left, wall_celling, setp;
+    setp = 100;
+    for(int i = 0; i < viewable_particles.size(); i++){
+        for(int j = 0; j < viewable_particles[i].size(); j++){
+            double radius = viewable_particles[i][j].get()->getRadius();
+            wall_right = ofGetWidth() - radius;
+            wall_left = radius;
+            wall_celling = radius;
+            double x = viewable_particles[i][j].get()->getPosition().x;
+            double y = viewable_particles[i][j].get()->getPosition().y;
             
-            // capture camera view
-            vidGrabber.update();
-        }
-        
-        // check collision
-        setp = 100;
-        for(int i = 0; i < viewable_particles.size(); i++){
-            for(int j = 0; j < viewable_particles[i].size(); j++){
-                double radius = viewable_particles[i][j].get()->getRadius();
-                wall_right = ofGetWidth() - radius;
-                wall_left = radius;
-                wall_celling = radius;
-                double x = viewable_particles[i][j].get()->getPosition().x;
-                double y = viewable_particles[i][j].get()->getPosition().y;
-                
-                if (x <= wall_right && y <= setp) {
-                    viewable_particles[i][j].get()->collisioned_count++;
-                } else if (x >= wall_left && y <= setp){
-                    viewable_particles[i][j].get()->collisioned_count++;
-                } else if (y >= wall_celling && y <= setp){
-                    viewable_particles[i][j].get()->collisioned_count++;
-                }
-                
-                if (viewable_particles[i][j].get()->collisioned_count == 50) {
-                    viewable_particles[i][j].get()->opacity = 0.7;
-                } else if (viewable_particles[i][j].get()->collisioned_count == 100) {
-                    viewable_particles[i][j].get()->opacity = 0.3;
-                } else if (viewable_particles[i][j].get()->collisioned_count == 150){;
-                    viewable_particles[i][j].get()->opacity = 1.0;
-                    viewable_particles[i][j].get()->bake_level = 0.5;
-                } else if (viewable_particles[i][j].get()->collisioned_count == 170) {
-                    viewable_particles[i][j].get()->opacity = 1.0;
-                    viewable_particles[i][j].get()->bake_level = 0.7;
-                } else if (viewable_particles[i][j].get()->collisioned_count > 200) {
-                    viewable_particles[i][j].get()->opacity = 0;
-                    viewable_particles[i][j].get()->destroy();
-                    viewable_particles[i].erase(viewable_particles[i].begin() + j );
+            if (x <= wall_right && y <= setp) {
+                viewable_particles[i][j].get()->collisioned_count++;
+            } else if (x >= wall_left && y <= setp){
+                viewable_particles[i][j].get()->collisioned_count++;
+            } else if (y >= wall_celling && y <= setp){
+                viewable_particles[i][j].get()->collisioned_count++;
+            }
+            
+            if (viewable_particles[i][j].get()->collisioned_count == 50) {
+                viewable_particles[i][j].get()->opacity = 0.7;
+            } else if (viewable_particles[i][j].get()->collisioned_count == 100) {
+                viewable_particles[i][j].get()->opacity = 0.3;
+            } else if (viewable_particles[i][j].get()->collisioned_count == 150){;
+                viewable_particles[i][j].get()->opacity = 1.0;
+                viewable_particles[i][j].get()->bake_level = 0.5;
+            } else if (viewable_particles[i][j].get()->collisioned_count == 170) {
+                viewable_particles[i][j].get()->opacity = 1.0;
+                viewable_particles[i][j].get()->bake_level = 0.7;
+            } else if (viewable_particles[i][j].get()->collisioned_count > 200) {
+                viewable_particles[i][j].get()->opacity = 0;
+                viewable_particles[i][j].get()->destroy();
+                viewable_particles[i].erase(viewable_particles[i].begin() + j );
 
-                    if(current_area_name == "A") {
-                        area_a++;
-                    } else if(current_area_name == "B") {
-                        area_b++;
-                    } else {
-                        area_c++;
-                    }
-
+                if(current_area_name == "A") {
+                    area_a++;
+                } else if(current_area_name == "B") {
+                    area_b++;
+                } else {
+                    area_c++;
                 }
-                
             }
         }
     }
-    //    }
     
     //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     //  face detection
@@ -453,12 +424,9 @@ void ofApp::draw() {
 
         //if (false) {
         int rank1, rank2, rank3;
-        area_a = 200;
-        area_b = 50;
-        area_c = 10;
-        
+        cout << "cnt:" << pop_a << " " << pop_b << " " << pop_c << endl;
         // drop popcone in partitioned area
-        if (music.getPositionMS()  <  resultBeginTime + 10000 && music.getPositionMS() % 300 == 0) {
+        if (music.getPositionMS()  <  resultBeginTime + 10000 && music.getPositionMS() % 50 == 0) {
             for (int i = 0; i < pop_a; i++) {
                 result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             }
@@ -474,43 +442,34 @@ void ofApp::draw() {
         groundLine.draw();
         cupLine.draw();
         
-        // judgement (area_a, area_b, area_c : 200, 150, 70)
-        float sort[3] = {area_a, area_b, area_c};
-        std::unordered_map<std::string, int> popcorns = {
-            {"area_a", area_a},
-            {"area_b", area_b},
-            {"area_c", area_c},
-        };
+        
         std::unordered_map<std::string, int> rank = {
             {"area_a", 0},
             {"area_b", 0},
             {"area_c", 0},
         };
-        for(int i = 0; i < 2; i++) {
-            for(int j = 0; j < 2; j++){
-                if(sort[j] < sort[j+1]){
-                    int change = sort[j];
-                    sort[j] = sort[j+1];
-                    sort[j+1] = change;
-                }
-            }
-        }
         
-        // define rank
-        for (auto i = 0; i < 3; ++i) {
-            if (sort[i] == popcorns["area_a"]) {
+        vector<pair<float,string> > pv;
+        pv.push_back(make_pair(area_a,"A"));
+        pv.push_back(make_pair(area_b,"B"));
+        pv.push_back(make_pair(area_c,"C"));
+        sort(pv.begin(),pv.end());
+        
+        for(int i = 0 ; i < 3 ; i++) {
+            if (pv[i].second == "A") {
                 rank["area_a"] = i + 1;
-            } else if ( sort[i] == popcorns["area_b"]) {
+            } else if (pv[i].second == "B") {
                 rank["area_b"] = i + 1;
-            } else if ( sort[i] == popcorns["area_c"]) {
+            } else if (pv[i].second == "C") {
                 rank["area_c"] = i + 1;
             }
         }
-        
+        cout << rank["area_a"] << " " << rank["area_b"] << " " << rank["area_c"] << endl;
         // drop popcorn
-        pop_a = (int)(5 / rank["area_a"]);
-        pop_b = (int)(5 / rank["area_b"]);
-        pop_c = (int)(5 / rank["area_c"]);
+        pop_a = (int)(10 / (rank["area_a"]+1));
+        pop_b = (int)(10 / (rank["area_b"]+1));
+        pop_c = (int)(10 / (rank["area_c"]+1));
+        //
         
         if (rank["area_a"] == 1) { rank1 = ofGetWidth()*1/6-50;}
         else if (rank["area_b"] == 1) { rank1 = ofGetWidth()*1/2-50;}
@@ -566,78 +525,11 @@ void ofApp::keyPressed(int key) {
     if (key == 'g'){
         box2d.createBounds(0, 0, window_width, window_height);
     }
-    // result
-    float area_a, area_b, area_c, pop_a, pop_b, pop_c;
-    if (key == 'm') {
-        // judgement (area_a, area_b, area_c : 200, 150, 70)
-        area_a = 70;
-        area_b = 20;
-        area_c = 150;
-        float sort[3] = {area_a, area_b, area_c};
-        std::unordered_map<std::string, int> popcorns = {
-            {"area_a", area_a},
-            {"area_b", area_b},
-            {"area_c", area_c},
-        };
-        std::unordered_map<std::string, int> rank = {
-            {"area_a", 0},
-            {"area_b", 0},
-            {"area_c", 0},
-        };
-        for(int i = 0; i < 2; i++) {
-            for(int j = 0; j < 2; j++){
-                if(sort[j] < sort[j+1]){
-                    int change = sort[j];
-                    sort[j] = sort[j+1];
-                    sort[j+1] = change;
-                }
-            }
-        }
-        // define rank
-        for (auto i = 0; i < 3; ++i) {
-            if (sort[i] == popcorns["area_a"]) {
-                rank["area_a"] = i + 1;
-            } else if ( sort[i] == popcorns["area_b"]) {
-                rank["area_b"] = i + 1;
-            } else if ( sort[i] == popcorns["area_c"]) {
-                rank["area_c"] = i + 1;
-            }
-        }
-        printf("\nrank[area_a] : %d(%d)\nrank[area_b] : %d(%d)\nrank[area_c] : %d(%d)\n\n", rank["area_a"], popcorns["area_a"], rank["area_b"], popcorns["area_b"], rank["area_c"], popcorns["area_c"]);
-        
-        // drop popcorn
-        pop_a = 10 / rank["area_a"];
-        pop_b = 10 / rank["area_b"];
-        pop_c = 10 / rank["area_c"];
-        
-        // area_A
-        for (int i = 0; i < pop_a; i++) {
-            shared_ptr<ofxBox2dCircle> areaa = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
-            areaa.get()->setPhysics(100, 0.5, 0.5);
-            areaa.get()->setup(box2d.getWorld(), ofGetWidth()/6, 0, 20);
-            //s            circles.push_back(areaa);
-        }
-        // area_B
-        for (int i = 0; i < pop_b; i++) {
-            shared_ptr<ofxBox2dCircle> areab = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
-            areab.get()->setPhysics(1, 0.5, 0.5);
-            areab.get()->setup(box2d.getWorld(), ofGetWidth()/2, 0, 20);
-            //s            circles.push_back(areab);
-        }
-        // area_C
-        for (int i = 0; i < pop_c; i++) {
-            shared_ptr<ofxBox2dCircle> areac = shared_ptr<ofxBox2dCircle>(new ofxBox2dCircle);
-            areac.get()->setPhysics(1, 0.5, 0.5);
-            areac.get()->setup(box2d.getWorld(), ofGetWidth()*5/6, 0, 20);
-            //s            circles.push_back(areac);
-        }
-        
-        if (key == 'l') {
-            music.setPositionMS(music.getPositionMS() + 100);
-        }
-        if (key == 'k') {
-            music.setPositionMS(music.getPositionMS() + 500);
-        }
+    if (key == 'l') {
+        music.setPositionMS(music.getPositionMS() + 100);
+    }
+    if (key == 'k') {
+        music.setPositionMS(music.getPositionMS() + 500);
     }
 }
 
