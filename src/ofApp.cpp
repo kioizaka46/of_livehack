@@ -94,7 +94,7 @@ void ofApp::setup() {
             ofLogNotice() << devices[i].id << ": " << devices[i].deviceName << " - unavailable ";
         }
     }
-    vidGrabber.setDeviceID(1);
+    vidGrabber.setDeviceID(0);
     vidGrabber.setDesiredFrameRate(40);
     vidGrabber.initGrabber(window_width, window_height);
     
@@ -287,7 +287,6 @@ void ofApp::update() {
         }
         
         // check collision
-        float wall_right, wall_left, wall_celling, setp;
         setp = 100;
         for(int i = 0; i < viewable_particles.size(); i++){
             for(int j = 0; j < viewable_particles[i].size(); j++){
@@ -446,13 +445,13 @@ void ofApp::draw() {
         // drop popcone in partitioned area
         if (music.getPositionMS()  < 14600 && music.getPositionMS() % 30 == 0) {
             for (int i = 0; i < pop_a; i++) {
-                result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_b; i++) {
-                result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_c; i++) {
-                result_viewable_particles.push_back(getResultObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
+                result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
             }
         }
         
@@ -618,11 +617,12 @@ void ofApp::keyPressed(int key) {
             //s            circles.push_back(areac);
         }
         
-    if (key == 'l') {
-        music.setPositionMS(music.getPositionMS() + 100);
-    }
-    if (key == 'k') {
-        music.setPositionMS(music.getPositionMS() + 500);
+        if (key == 'l') {
+            music.setPositionMS(music.getPositionMS() + 100);
+        }
+        if (key == 'k') {
+            music.setPositionMS(music.getPositionMS() + 500);
+        }
     }
 }
 
