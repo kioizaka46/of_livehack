@@ -103,8 +103,8 @@ public:
     int                 loopCnt = 1;
     const int           judgePoint = 50;
     const int           resultBeginTime = 53670;
-    const int           bonusBeginTime = 20780;
-    bool                bonusTimeFlag = false;
+    const int           feverBeginTime = 20780;
+    bool                feverTimeFlag = false;
     bool                resultTimeFlag = false;
     double tracking_interval;
     double diff_param;
@@ -117,6 +117,12 @@ public:
     const int w_size = 1000;
     const int h_size = 800;
     
+    // fevertime
     ofImage snow_img;
+    ofImage fevertime_img;
+    float xpos, ypos;
+    float xspeed;
+    bool flag_motion;
+    
     ofxCvHaarFinder finder;
 };

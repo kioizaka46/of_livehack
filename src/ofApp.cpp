@@ -101,6 +101,11 @@ void ofApp::setup() {
     //snow
     finder.setup("haarcascade_frontalface_default.xml");
     snow_img.load("popcorn.png");
+    fevertime_img.load("fevertime.png");
+    fevertime_img.setAnchorPoint(0.5, 0.5);
+    xpos = ofGetWidth()/2;
+    ypos = ofGetHeight()/2;
+    xspeed = -15;
 }
 
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
@@ -145,13 +150,20 @@ vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(int line_index, int x, in
 void ofApp::update() {
     // move depend on phisic setting
     box2d.update();
-    
+ 
+    // set fevertime motion
+    xpos += xspeed;
+    flag_motion = false;
+    if(xpos < -1270){
+        flag_motion = true;
+    }
+
     // camera captured
     bool bNewFrame = false;
     vidGrabber.update();
     bNewFrame = vidGrabber.isFrameNew();
-    /*Bonustime set*/ //TODO
-    bonusTimeFlag = music.getPositionMS() > bonusBeginTime;
+    /*fevertime set*/ //TODO
+    feverTimeFlag = music.getPositionMS() > feverBeginTime;
     
     if (bNewFrame){
         colorImg.setFromPixels(vidGrabber.getPixels());
@@ -183,7 +195,7 @@ void ofApp::update() {
         // set position of now lyric under next lyric
         tail_index = viewable_particles.size() - 1;
         
-        for(int i = 0; i < viewable_particles[tail_index].size() && !bonusTimeFlag; i++){
+        for(int i = 0; i < viewable_particles[tail_index].size() && !feverTimeFlag; i++){
             viewable_particles[tail_index][i].get()->setPosition(
                                                                  (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
                                                                  start_point_y + font_size);
@@ -194,7 +206,7 @@ void ofApp::update() {
     
     // fix now lyric position
     if(tail_index >= 0){
-        for(int i = 0; i < viewable_particles[tail_index].size() && !bonusTimeFlag; i++){
+        for(int i = 0; i < viewable_particles[tail_index].size() && !feverTimeFlag; i++){
             viewable_particles[tail_index][i].get()->setPosition(
                                                                  (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
                                                                  start_point_y);
@@ -204,7 +216,7 @@ void ofApp::update() {
     // change box2d bound size if change window size
     if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
         // update viewable particles position
-        for(int i = 0; i < viewable_particles.size() && !bonusTimeFlag; i++) {
+        for(int i = 0; i < viewable_particles.size() && !feverTimeFlag; i++) {
             for (int j = 0; j < viewable_particles[i].size(); j++) {
                 viewable_particles[i][j].get()->setPosition(
                                                             (ofGetWidth() - viewable_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
@@ -287,11 +299,11 @@ void ofApp::draw() {
     ofNoFill();
     int control_size_x = 80;
     int control_size_y = 200;
-    if(bonusTimeFlag) {
+    if(feverTimeFlag) {
         for(int i = 0; i < finder.blobs.size(); i++) {
             ofRectangle cur = finder.blobs[i].boundingRect;
             snow_img.draw(cur.x - control_size_x/2 ,cur.y - control_size_y/2 - 50, cur.width + control_size_x, cur.height + control_size_y);
-            // braw bonus time popcorn
+            // braw fever time popcorn
             if(loopCnt % 15 == 0){
                 viewable_particles.push_back(getCustomObj(loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2));
                 int idx = viewable_particles[loaded_line_head].size() - 1;
@@ -301,6 +313,10 @@ void ofApp::draw() {
                 loaded_line_head++;
             }
         }
+    }
+    fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
+    if(flag_motion) {
+        fevertime_img.draw(ofGetWidth()-250, 15, 230, 80);
     }
     
     // draw viewable lyrics
