@@ -9,48 +9,8 @@ void ofApp::setup() {
     json_file_name      = "sync_koi_hoshinogen.json";
     music_file_name     = "koi_hoshinogen.mp3";
     
-    // draw setting
-    font_size           = 30;
-    word_margin         = 20;
-    radius_fix_pram     = 0.6;
-    margin_time         = 300;
-    drop_point_x        = 100.0;
-    drop_point_y        = 350.0;
-    start_point_x       = 200.0;
-    start_point_y       = 250.0;
-    preload_number      = 3;
-    loaded_line_head    = 0;
-    now_lyric_line      = 0;
-    camera_draw_opacity = 0.7;
-    
-    // physic setting
-    density             = 0.5;
-    bounce              = 0.4;
-    friction            = 1.0;
-    gravity             = 25;
-    pop_power           = 600;
-    
-    // motion tracking setting
-    width               = 320;
-    height              = 240;
-    bLearnBakground     = true;
-    threshold           = 80;
-    number_of_object    = 2;
-    diff_param          = 1.5;
-    tracking_interval   = 1.5;
-    
-    // thread setting
-    sensor_interval_ms  = 10000;
-    rotate_degree       = 0;
-    current_area_name   = "A";
     next_execute_time   = ofGetElapsedTimeMillis();
     servo_thread.sending(rotate_degree);
-    
-    // rank setting
-    area_a = 0;
-    area_b = 0;
-    area_c = 0;
-    area_img_expanded = 0.3;
     
     // load images
     ofDirectory dir;
@@ -75,7 +35,7 @@ void ofApp::setup() {
     box2d.setFPS(45.0);
     box2d.registerGrabbing();
     box2d.createBounds(0, 0, window_width, window_height);
-    printf("test3\n");
+    
     ofSetWindowShape(window_width, window_height);
     
     // area circle
@@ -261,7 +221,7 @@ void ofApp::update() {
         window_width = ofGetWidth();
         window_height = ofGetHeight();
         box2d.createBounds(0, 0, window_width, window_height);
-        printf("test4\n");
+        
         // capture camera view
         vidGrabber.update();
     }
@@ -290,17 +250,17 @@ void ofApp::update() {
                 viewable_particles[i][j].get()->opacity = 0.7;
             } else if (viewable_particles[i][j].get()->collisioned_count == 10) {
                 viewable_particles[i][j].get()->opacity = 0.3;
-            } else if (viewable_particles[i][j].get()->collisioned_count == 15){;
+            } else if (viewable_particles[i][j].get()->collisioned_count == 12){;
                 viewable_particles[i][j].get()->opacity = 1.0;
                 viewable_particles[i][j].get()->bake_level = 0.5;
-            } else if (viewable_particles[i][j].get()->collisioned_count == 20) {
+            } else if (viewable_particles[i][j].get()->collisioned_count == 15) {
                 viewable_particles[i][j].get()->opacity = 1.0;
                 viewable_particles[i][j].get()->bake_level = 0.7;
-            } else if (viewable_particles[i][j].get()->collisioned_count > 50) {
+            } else if (viewable_particles[i][j].get()->collisioned_count > 20) {
                 viewable_particles[i][j].get()->opacity = 0;
                 viewable_particles[i][j].get()->destroy();
                 viewable_particles[i].erase(viewable_particles[i].begin() + j );
-                
+                //viewable_particles[i][j].get()->setup(box2d.getWorld(), 100000000, 100000000, 20);
                 
                 if(current_area_name == "A") {
                     area_a++;
@@ -315,9 +275,33 @@ void ofApp::update() {
     
     //image.setFromPixels(vidGrabber.getPixels().getData(), window_width, window_height, OF_IMAGE_COLOR);
     //  face detection
-    if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
+    //    if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
     loopCnt++;
-    
+    if (resultBeginTime < music.getPositionMS()) {
+        if (!resultCalcuratedA && loopCnt % 10 == 0) {
+            result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
+            drop_count_a ++;
+            if (20 == drop_count_a) {
+                resultCalcuratedA = true;
+            }
+        }
+        if (!resultCalcuratedB&& loopCnt % 10 == 0) {
+            
+            result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
+            drop_count_b ++;
+            if (10 == drop_count_b) {
+                resultCalcuratedB = true;
+            }
+        }
+        if (!resultCalcuratedC && loopCnt % 10 == 0) {
+            
+            result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
+            drop_count_c ++;
+            if (50 == drop_count_c) {
+                resultCalcuratedC = true;
+            }
+        }
+    }
     // sound update
     ofSoundUpdate();
 }
@@ -370,12 +354,12 @@ void ofApp::draw() {
     }
     
     // TODO What's doing here ??
-//    for(int i = 0; i < result_viewable_particles.size(); i++){
-//        for(int j = 0; j < result_viewable_particles[i].size(); j++){
-//            result_viewable_particles[i][j].get()->bake_level = 0.7;
-//            result_viewable_particles[i][j]->draw();
-//        }
-//    }
+    for(int i = 0; i < result_viewable_particles.size(); i++){
+        for(int j = 0; j < result_viewable_particles[i].size(); j++){
+            result_viewable_particles[i][j].get()->bake_level = 0.7;
+            result_viewable_particles[i][j]->draw();
+        }
+    }
     
     // motion section
     for (int i = 0; i < contourFinder.nBlobs; i++){
@@ -413,7 +397,6 @@ void ofApp::draw() {
     //reflesh befor result
     if ((resultBeginTime - 8000) <= music.getPositionMS() && music.getPositionMS() <= resultBeginTime) {
         box2d.createBounds(0, 0, 0, 0);
-        printf("test1\n");
     }
     
     // draw result
@@ -421,7 +404,6 @@ void ofApp::draw() {
         // isCalcurate
         if (!isCalcurating) {
             box2d.createBounds(0, 0, window_width, window_height);
-            printf("test2\n");
             printf("area_a = %d, area_b = %d, area_c = %d\n", area_a, area_b, area_c);
             std::unordered_map<std::string, int> rank = {
                 {"area_a", 0},
@@ -466,31 +448,6 @@ void ofApp::draw() {
         textA.draw(ofGetWidth()*1/6-50, ofGetHeight() - 105, 150, 105);
         textB.draw(ofGetWidth()*1/2-50, ofGetHeight() - 105, 150, 105);
         textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
-        // drop pop
-        if (!resultCalcuratedA) {
-            result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
-            drop_count_a ++;
-            printf("drop_count_a = %d\n", drop_count_a);
-            if (area_a == drop_count_a) {
-                resultCalcuratedA = true;
-            }
-        }
-        if (!resultCalcuratedB) {
-            result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
-            drop_count_b ++;
-            printf("drop_count_b = %d\n", drop_count_b);
-            if (area_b == drop_count_b) {
-                resultCalcuratedB = true;
-            }
-        }
-        if (!resultCalcuratedC) {
-            result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
-            drop_count_c ++;
-            printf("drop_count_c = %d\n", drop_count_c);
-            if (area_c == drop_count_c) {
-                resultCalcuratedC = true;
-            }
-        }
     }
 }
 
@@ -592,7 +549,6 @@ void ofApp::jumpPopcones(int d) {
             float vec_x = viewable_particles[i][j].get()->getPosition().x;
             float vec_y = viewable_particles[i][j].get()->getPosition().y;
             viewable_particles[i][j].get()->addRepulsionForce(vec_x + dx, vec_y + dy, pop_power);
-            
         }
     }
 }
@@ -623,12 +579,12 @@ void ofApp::threadUpdate() {
 // -------------------------------------------------------------
 void ofApp::drawResult() {
     // clear all popcones
-//    for(int i = 0; i < viewable_particles.size(); i++){
-//        for(int j = 0; j < viewable_particles[i].size(); j++){
-//            viewable_particles[i][j].get()->destroy();
-//            viewable_particles.erase(viewable_particles.begin());
-//        }
-//    }
+    for(int i = 0; i < viewable_particles.size(); i++){
+        for(int j = 0; j < viewable_particles[i].size(); j++){
+            viewable_particles[i][j].get()->destroy();
+            viewable_particles.erase(viewable_particles.begin());
+        }
+    }
     // image images
     yaneA.load("images/yane_A.png");
     yaneB.load("images/yane_B.png");
