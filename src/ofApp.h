@@ -37,29 +37,29 @@ public:
     string music_file_name;
     ofSoundPlayer music;
     float synthPosition;
-    float margin_time;
+    float margin_time           = 300;
 
     // io
     string json_file_name;
     ofxJSONElement sync_lyric_json;
     string font_file_name;
     ofxTrueTypeFontUC font;
-    int font_size;
+    int font_size               = 40;
 
     // animation
     int window_width;
     int window_height;
-    double drop_point_x;
-    double drop_point_y;
-    double start_point_x;
-    double start_point_y;
-    float radius_fix_pram;
+    double drop_point_x         = 100;
+    double drop_point_y         = 350;
+    double start_point_x        = 200;
+    double start_point_y        = 250;
+    float radius_fix_pram       = 0.6;
 
     // viewer
-    int now_lyric_line;
-    int loaded_line_head;
-    int preload_number;
-    int word_margin;
+    int now_lyric_line          = 0;
+    int loaded_line_head        = 0;
+    int preload_number          = 3;
+    int word_margin             = 20;
     double next_lyric_ms;
 
     vector<vector<shared_ptr<CustomParticle>>> viewable_particles, result_viewable_particles;
@@ -79,14 +79,14 @@ public:
     float min_popcone_size = 20;
     float max_popcone_size = 30;
 
-    double density;
-    double bounce;
+    const double density                          = 0.5;
+    const double bounce                           = 0.4;
     double friction;
-    double gravity;
-    double pop_power;
+    const double gravity                          = 25;
+    const double pop_power                        = 600;
     
     // camera
-    double camera_draw_opacity;
+    double camera_draw_opacity              = 0.7;
     ofVideoGrabber 		vidGrabber;
     ofxCvColorImage			colorImg;
     ofxCvGrayscaleImage 	grayImage;
@@ -96,9 +96,9 @@ public:
     ofxCvContourFinder 	lastContourFinder;
     
     // servo controller thread various
-    int rotate_degree;
+    int rotate_degree                               = 0;
     ServoControllerThread servo_thread;
-    int sensor_interval_ms;
+    int sensor_interval_ms                          = 10000;
     int next_execute_time;
     bool execute_flag;
     void threadUpdate();
@@ -106,10 +106,10 @@ public:
     
     void jumpPopcones(int d);
     
-    int 				threshold;
-    bool				bLearnBakground;
-    float               width;
-    float               height;
+    const int 				threshold                   = 80;
+    bool				bLearnBakground             = true;
+    float               width                       = 320;
+    float               height                      = 240;
     double              motionCount = 0;
     int                 lastJumpTime = 0;
     int                 drawCount = 0;
@@ -119,7 +119,7 @@ public:
     int                 drop_count_c = 0;
     const int           judgePoint = 50;
     const int           resultBeginTime = 211000;
-    const int           feverBeginTime = 200000;
+    const int           feverBeginTime = 190000;
     bool                feverTimeFlag = false;
     bool                resultTimeFlag = false;
     bool                resultTimeFlagment = false;
@@ -127,17 +127,18 @@ public:
     bool                resultCalcuratedB = false;
     bool                resultCalcuratedC = false;
     bool                isCalcurating = false;
-    double tracking_interval;
-    double diff_param;
-    double number_of_object;
+    const double tracking_interval                = 1.5;
+    const double diff_param                       = 1.5;
+    const double number_of_object                 = 2;
     
     const double INF = (1 << 27);
     
     // for result ranking view
-    int area_a, area_b, area_c, pop_a, pop_b, pop_c;
+    int area_a = 0,area_b = 0,area_c = 0;
+    int pop_a, pop_b, pop_c;
     int rank1, rank2, rank3;
-    string current_area_name;
-    double area_img_expanded;
+    string current_area_name                = "A";
+    double area_img_expanded                = 0.3;
     
     const int w_size = 1000;
     const int h_size = 800;
