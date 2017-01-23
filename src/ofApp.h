@@ -119,7 +119,7 @@ public:
     int                 drop_count_c = 0;
     const int           judgePoint = 50;
     const int           resultBeginTime = 211000;
-    const int           feverBeginTime = 20780;
+    const int           feverBeginTime = 200000;
     bool                feverTimeFlag = false;
     bool                resultTimeFlag = false;
     bool                resultTimeFlagment = false;
