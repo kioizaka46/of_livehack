@@ -124,7 +124,7 @@ vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(int line_index, int x, in
     // create line obj
     vector<shared_ptr<CustomParticle>> tmp_obj;
     string test = "t";
-    tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, test, 0, font_size)));
+    tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(images, test, 0, 50)));
     
     // set physics
     for(int i = 0; i < tmp_obj.size(); i++) {
@@ -277,28 +277,31 @@ void ofApp::update() {
     //  face detection
     //    if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
     loopCnt++;
+    // 411 : total words
+    // 160 : full cup
     if (resultBeginTime < music.getPositionMS()) {
-        if (!resultCalcuratedA && loopCnt % 10 == 0) {
+        if (!resultCalcuratedA && loopCnt % 8 == 0) {
             result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             drop_count_a ++;
-            if (20 == drop_count_a) {
+            if(pop_a / 411 * 100 == drop_count_a) {
                 resultCalcuratedA = true;
+                checkEnd++;
             }
         }
-        if (!resultCalcuratedB&& loopCnt % 10 == 0) {
-            
+        if (!resultCalcuratedB&& loopCnt % 12 == 0) {
             result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
             drop_count_b ++;
-            if (10 == drop_count_b) {
+            if (area_b / 411 * 100 == drop_count_b) {
                 resultCalcuratedB = true;
+                checkEnd++;
             }
         }
         if (!resultCalcuratedC && loopCnt % 10 == 0) {
-            
             result_viewable_particles.push_back(getCustomObj(loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
             drop_count_c ++;
-            if (50 == drop_count_c) {
+            if (area_c / 411 * 100 == drop_count_c) {
                 resultCalcuratedC = true;
+                checkEnd++;
             }
         }
     }
@@ -393,7 +396,6 @@ void ofApp::draw() {
         }
     }
     
-    
     //reflesh befor result
     if ((resultBeginTime - 8000) <= music.getPositionMS() && music.getPositionMS() <= resultBeginTime) {
         box2d.createBounds(0, 0, 0, 0);
@@ -405,11 +407,6 @@ void ofApp::draw() {
         if (!isCalcurating) {
             box2d.createBounds(0, 0, window_width, window_height);
             printf("area_a = %d, area_b = %d, area_c = %d\n", area_a, area_b, area_c);
-            std::unordered_map<std::string, int> rank = {
-                {"area_a", 0},
-                {"area_b", 0},
-                {"area_c", 0},
-            };
             vector<pair<float,string> > pv;
             pv.push_back(make_pair(area_a,"A"));
             pv.push_back(make_pair(area_b,"B"));
@@ -438,16 +435,22 @@ void ofApp::draw() {
             drawResult();
             printf("areaA_rank = %d, areaA_rank = %d, areaA_rank = %d\n", rank["area_a"], rank["area_b"], rank["area_c"]);
         }
-        ofSetColor(255, 255, 255, 255);
         first.draw(rank1, 120, 100, 70);
         second.draw(rank2, 120, 100, 70);
         third.draw(rank3, 120, 100, 70);
+        ofSetColor(255, 255, 255, 255);
         yaneA.draw(10, 0, 320, 100);
         yaneB.draw(ofGetWidth()/3, 0, 320, 100);
         yaneC.draw(ofGetWidth()*2/3, 0, 320, 100);
         textA.draw(ofGetWidth()*1/6-50, ofGetHeight() - 105, 150, 105);
         textB.draw(ofGetWidth()*1/2-50, ofGetHeight() - 105, 150, 105);
         textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
+        // draw ranking
+        if  (checkEnd == 3) {
+            first.draw(rank1, 120, 100, 70);
+            second.draw(rank2, 120, 100, 70);
+            third.draw(rank3, 120, 100, 70);
+        }
     }
 }
 

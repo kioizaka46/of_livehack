@@ -33,6 +33,13 @@ public:
     // my method
     vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getCustomObj(int line_index, int x, int y);
     
+    // ranking
+    std::unordered_map<std::string, int> rank = {
+        {"area_a", 0},
+        {"area_b", 0},
+        {"area_c", 0},
+    };
+    
     // sounds
     string music_file_name;
     ofSoundPlayer music;
@@ -116,6 +123,7 @@ public:
     int                 loopCnt = 1;
     int                 drop_count_a = 0;
     int                 drop_count_b = 0;
+    int                 checkEnd = 0;
     int                 drop_count_c = 0;
     const int           judgePoint = 50;
     const int           resultBeginTime = 211000;
