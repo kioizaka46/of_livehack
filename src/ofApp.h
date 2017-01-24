@@ -27,13 +27,16 @@ public:
     void resized(int w, int h);
     
     void drawResult();
+    void setupResult();
+    void drawFeverText();
     
     bool bMouseForce;
     
-    // my method
-    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getCustomObj(int line_index, int x, int y);
+    // generate lyric obj method
+    vector<shared_ptr<CustomParticle>> getLineObj(int line_index);
+    shared_ptr<CustomParticle> getCustomObj(vector<ofImage> popcorne_images, int line_index, int x, int y);
     
-    // ranking
+    // ranking array
     std::unordered_map<std::string, int> rank = {
         {"area_a", 0},
         {"area_b", 0},
@@ -51,7 +54,7 @@ public:
     ofxJSONElement sync_lyric_json;
     string font_file_name;
     ofxTrueTypeFontUC font;
-    int font_size               = 40;
+    int font_size               = 30;
 
     // animation
     int window_width;
@@ -69,14 +72,16 @@ public:
     int word_margin             = 20;
     double next_lyric_ms;
 
-    vector<vector<shared_ptr<CustomParticle>>> viewable_particles, result_viewable_particles;
+    vector<vector<shared_ptr<CustomParticle>>> viewable_particles;
+    vector<shared_ptr<CustomParticle>> result_viewable_particles;
     
     ofxBox2d box2d;
     ofPolyline drawing, groundLine, cupLine;
     ofxBox2dEdge edgeLine;
     
     vector <ofImage> images;
-   
+    vector <ofImage> images_fevertime;
+    
     // result
     ofImage yaneA, yaneB, yaneC, textA, textB, textC, first, second, third;
     vector<shared_ptr<ofxBox2dCircle> > circles, pop ;
@@ -85,12 +90,13 @@ public:
     
     float min_popcone_size = 20;
     float max_popcone_size = 30;
-
-    const double density                          = 0.5;
-    const double bounce                           = 0.4;
-    double friction;
-    const double gravity                          = 25;
-    const double pop_power                        = 600;
+    
+    // physics
+    const double density    = 0.5;
+    const double bounce     = 0.2;
+    double friction         = 5.0;
+    const double gravity    = 25;
+    const double pop_power  = 600;
     
     // camera
     double camera_draw_opacity              = 0.7;
@@ -110,31 +116,35 @@ public:
     bool execute_flag;
     void threadUpdate();
     
+    void checkCollision();
     
     void jumpPopcones(int d);
     
-    const int 				threshold                   = 80;
+    const int 			threshold                   = 80;
     bool				bLearnBakground             = true;
     float               width                       = 320;
     float               height                      = 240;
     double              motionCount = 0;
     int                 lastJumpTime = 0;
-    int                 drawCount = 0;
     int                 loopCnt = 1;
     int                 drop_count_a = 0;
     int                 drop_count_b = 0;
     int                 checkEnd = 0;
     int                 drop_count_c = 0;
     const int           judgePoint = 50;
+    const int           feverBeginTime = 77533;
+    const int           feverEndTime = 88639;
     const int           resultBeginTime = 211000;
-    const int           feverBeginTime = 190000;
+    const int           finalLyricTime = 210765;
+    const int           lyricClearMarginTime = 2000;
+    bool                flushedAllLyric = false;
     bool                feverTimeFlag = false;
     bool                resultTimeFlag = false;
     bool                resultTimeFlagment = false;
-    bool                resultCalcuratedA = false;
-    bool                resultCalcuratedB = false;
-    bool                resultCalcuratedC = false;
-    bool                isCalcurating = false;
+    bool                resultGenerated_A = false;
+    bool                resultGenerated_B = false;
+    bool                resultGenerated_C = false;
+    bool                isCalcurated = false;
     const double tracking_interval                = 1.5;
     const double diff_param                       = 1.5;
     const double number_of_object                 = 2;
@@ -154,9 +164,13 @@ public:
     // fevertime
     ofImage snow_img;
     ofImage fevertime_img;
-    float xpos, ypos;
-    float xspeed;
     bool flag_motion;
+    float fevertime_img_expand = 0.06;
+    float fevertime_animating_img_expand = 0.2;
+    
+    // fevertime text animation
+    int fever_text_animate_time = 3000;
+
     vector <ofImage> area_images;
     ofxBox2dCircle* area_circle_obj;
     
