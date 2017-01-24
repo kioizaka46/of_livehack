@@ -285,7 +285,7 @@ void ofApp::draw() {
     
     int camera_height_fixed = (double)ofGetWidth() * (double)(9.0/16.0);
     double camera_aspect_ratio = (double)ofGetHeight()/(double)camera_height_fixed;
-    vidGrabber.draw(0,0, ofGetWidth()*camera_aspect_ratio, ofGetHeight()*camera_aspect_ratio);
+    vidGrabber.draw(ofGetWidth()*camera_aspect_ratio,0, -ofGetWidth()*camera_aspect_ratio, ofGetHeight()*camera_aspect_ratio);
     
     // draw snow
     ofSetLineWidth(3);
