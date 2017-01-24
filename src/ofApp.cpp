@@ -282,7 +282,10 @@ void ofApp::draw() {
     // draw camera caputured
     // TODO reverse capture image
     ofSetColor(255, 255, 255, 255 * camera_draw_opacity);
-    vidGrabber.draw(0,0);
+    
+    int camera_height_fixed = (double)ofGetWidth() * (double)(9.0/16.0);
+    double camera_aspect_ratio = (double)ofGetHeight()/(double)camera_height_fixed;
+    vidGrabber.draw(0,0, ofGetWidth()*camera_aspect_ratio, ofGetHeight()*camera_aspect_ratio);
     
     // draw snow
     ofSetLineWidth(3);
@@ -358,6 +361,7 @@ void ofApp::draw() {
             img_index = 2;
         }
         ofSetColor(255,255,255);
+        area_circle_obj->setPosition(ofGetWidth()/2, ofGetHeight());
         area_images[img_index].draw((ofGetWidth() - (area_images[img_index].getWidth() * area_img_expanded))/2, ofGetHeight() - (area_images[img_index].getHeight() * area_img_expanded), area_images[img_index].getWidth() * area_img_expanded, area_images[img_index].getHeight() * area_img_expanded);
     }
     
