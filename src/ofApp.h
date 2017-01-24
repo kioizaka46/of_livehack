@@ -84,6 +84,7 @@ public:
     
     // result
     ofImage yaneA, yaneB, yaneC, textA, textB, textC, first, second, third;
+    vector <ofImage> rank_images;
     vector<shared_ptr<ofxBox2dCircle> > circles, pop ;
     vector <ofPolyline> lines;
     ofPtr<ofxBox2dPolygon> cup;
@@ -137,6 +138,8 @@ public:
     const int           resultBeginTime = 211000;
     const int           finalLyricTime = 210765;
     const int           lyricClearMarginTime = 2000;
+    const int           musicEndTime = 248529;
+    const int           viewableRankTime = 3500;
     bool                flushedAllLyric = false;
     bool                feverTimeFlag = false;
     bool                resultTimeFlag = false;
@@ -157,6 +160,17 @@ public:
     int rank1, rank2, rank3;
     string current_area_name                = "A";
     double area_img_expanded                = 0.3;
+    
+    double prop_area_A = 0.0;
+    double prop_area_B = 0.0;
+    double prop_area_C = 0.0;
+    int drop_end_time_ms_A = 0;
+    int drop_end_time_ms_B = 0;
+    int drop_end_time_ms_C = 0;
+    ofImage rank_img_A;
+    ofImage rank_img_B;
+    ofImage rank_img_C;
+    const int drop_interval = 10;
     
     const int w_size = 1000;
     const int h_size = 800;
