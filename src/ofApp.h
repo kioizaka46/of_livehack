@@ -27,11 +27,13 @@ public:
     void resized(int w, int h);
     
     void drawResult();
+    void drawFeverText();
     
     bool bMouseForce;
     
     // my method
-    vector<shared_ptr<CustomParticle>> getLineObj(int line_index), getCustomObj(vector<ofImage> popcorne_images, int line_index, int x, int y);
+    vector<shared_ptr<CustomParticle>> getLineObj(int line_index);
+    shared_ptr<CustomParticle> getCustomObj(vector<ofImage> popcorne_images, int line_index, int x, int y);
     
     // sounds
     string music_file_name;
@@ -113,12 +115,11 @@ public:
     float               height;
     double              motionCount = 0;
     int                 lastJumpTime = 0;
-    int                 drawCount = 0;
     int                 loopCnt = 1;
     const int           judgePoint = 50;
-    const int           resultBeginTime = 30670;
-    const int           feverBeginTime = 20780;
+    const int           feverBeginTime = 77533;
     bool                feverTimeFlag = false;
+    const int           resultBeginTime = 211000;
     bool                resultTimeFlag = false;
     double tracking_interval;
     double diff_param;
@@ -140,6 +141,14 @@ public:
     float xpos, ypos;
     float xspeed;
     bool flag_motion;
+    float fevertime_img_expand;
+    float fevertime_animating_img_expand;
+    
+    // fevertime text animation
+    int fever_text_start_time = feverBeginTime;
+    int fever_text_animate_time = 5000;
+    int fever_text_end_time = 88639;
+
     
     vector <ofImage> area_images;
     ofxBox2dCircle* area_circle_obj;

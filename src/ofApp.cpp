@@ -22,6 +22,8 @@ void ofApp::setup() {
     loaded_line_head    = 0;
     now_lyric_line      = 0;
     camera_draw_opacity = 0.7;
+    fevertime_img_expand = 0.06;
+    fevertime_animating_img_expand = 0.2;
     
     // physic setting
     density             = 0.5;
@@ -166,38 +168,31 @@ vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
     return tmp_obj;
 }
 
-vector<shared_ptr<CustomParticle>> ofApp::getCustomObj(vector<ofImage> popcorn_images, int line_index, int x, int y){
+shared_ptr<CustomParticle> ofApp::getCustomObj(vector<ofImage> popcorn_images, int line_index, int x, int y){
     // create line obj
-    vector<shared_ptr<CustomParticle>> tmp_obj;
-    string test = "t";
-    tmp_obj.push_back(shared_ptr<CustomParticle>(new CustomParticle(popcorn_images, test, 0, font_size)));
+    shared_ptr<CustomParticle> tmp_obj;
+    string dummy_str = "*";
+    tmp_obj = shared_ptr<CustomParticle>(new CustomParticle(popcorn_images, dummy_str, 0, font_size));
     
     // set physics
-    for(int i = 0; i < tmp_obj.size(); i++) {
-        tmp_obj[i].get()->setPhysics(density, bounce, friction);
-        tmp_obj[i].get()->setup(box2d.getWorld(), x, y, 20);
-    }
+    tmp_obj->setPhysics(density, bounce, friction);
+    tmp_obj->setup(box2d.getWorld(), x, y, 20);
+
     return tmp_obj;
 }
 //--------------------------------------------------------------
 void ofApp::update() {
     // move depend on phisic setting
     box2d.update();
-
  
-    // set fevertime motion
-    xpos += xspeed;
-    flag_motion = false;
-    if(xpos < -3500){
-        flag_motion = true;
-    }
 
     // camera captured
     bool bNewFrame = false;
     vidGrabber.update();
     bNewFrame = vidGrabber.isFrameNew();
-    /*fevertime set*/ //TODO
-    feverTimeFlag = music.getPositionMS() > feverBeginTime && music.getPositionMS() < resultBeginTime;
+    
+    // fevertime set // TODO
+    feverTimeFlag = music.getPositionMS() > feverBeginTime && music.getPositionMS() < fever_text_end_time;
     resultTimeFlag = music.getPositionMS() > resultBeginTime;
    
     if (bNewFrame){
@@ -205,7 +200,7 @@ void ofApp::update() {
         
         grayImage = colorImg;
         if (bLearnBakground == true){
-            grayBg = grayImage;                // the = sign copys the pixels from grayImage into grayBg (operator overloading)
+            grayBg = grayImage;// the = sign copys the pixels from grayImage into grayBg (operator overloading)
             bLearnBakground = false;
         }
         
@@ -225,13 +220,13 @@ void ofApp::update() {
     
     float music_pos = music.getPositionMS();
     next_lyric_ms = sync_lyric_json["lines"][loaded_line_head]["time"].asDouble();
-    if (music_pos + margin_time > next_lyric_ms && loaded_line_head < sync_lyric_json["lines"].size()) {
+    if (music_pos + margin_time > next_lyric_ms && loaded_line_head < sync_lyric_json["lines"].size() && !feverTimeFlag) {
         // next lyric line add viewable obj
         viewable_particles.push_back(getLineObj(loaded_line_head));
         // set position of now lyric under next lyric
         tail_index = viewable_particles.size() - 1;
         
-        for(int i = 0; i < viewable_particles[tail_index].size() && !feverTimeFlag; i++){
+        for(int i = 0; i < viewable_particles[tail_index].size(); i++){
             viewable_particles[tail_index][i].get()->setPosition(
                                                                  (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
                                                                  start_point_y + font_size);
@@ -241,8 +236,8 @@ void ofApp::update() {
     }
     
     // fix now lyric position
-    if(tail_index >= 0){
-        for(int i = 0; i < viewable_particles[tail_index].size() && !feverTimeFlag; i++){
+    if(tail_index >= 0 && !feverTimeFlag){
+        for(int i = 0; i < viewable_particles[tail_index].size(); i++){
             viewable_particles[tail_index][i].get()->setPosition(
                                                                  (ofGetWidth() - viewable_particles[tail_index].size() * (font_size + word_margin))/2 + (i * (font_size + word_margin)),
                                                                  start_point_y);
@@ -252,7 +247,7 @@ void ofApp::update() {
     // change box2d bound size if change window size
     if (window_width != ofGetWidth() || window_height != ofGetHeight()) {
         // update viewable particles position
-        for(int i = 0; i < viewable_particles.size() && !feverTimeFlag; i++) {
+        for(int i = 0; i < viewable_particles.size(); i++) {
             for (int j = 0; j < viewable_particles[i].size(); j++) {
                 viewable_particles[i][j].get()->setPosition(
                                                             (ofGetWidth() - viewable_particles[i].size() * (font_size + word_margin))/2 + (j * (font_size + word_margin)),
@@ -334,36 +329,39 @@ void ofApp::draw() {
 
     int control_size_x = 80;
     int control_size_y = 200;
-    feverTimeFlag = music.getPositionMS() > feverBeginTime && music.getPositionMS() < resultBeginTime;
     if(feverTimeFlag) {
         for(int i = 0; i < finder.blobs.size(); i++) {
+            // draw image on face
             ofRectangle cur = finder.blobs[i].boundingRect;
             ofSetColor(255, 255, 255);
-            snow_img.draw(cur.x - control_size_x/2 ,cur.y - control_size_y/2 - 50, cur.width + control_size_x, cur.height + control_size_y);
+            snow_img.draw(
+                          cur.x - control_size_x/2,
+                          cur.y - control_size_y/2 - 50,
+                          cur.width + control_size_x,
+                          cur.height + control_size_y);
             // braw fever time popcorn
             if(loopCnt % 15 == 0){
-                viewable_particles.push_back(getCustomObj(images_fevertime, loaded_line_head, cur.x + cur.width/2, cur.y + cur.height/2 - 150));
+                viewable_particles[loaded_line_head].push_back(getCustomObj(
+                                                               images_fevertime,
+                                                               loaded_line_head,
+                                                               cur.x + cur.width/2,
+                                                               cur.y + cur.height/2 - 150));
                 int idx = viewable_particles[loaded_line_head].size() - 1;
                 viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%50 - rand()%50), 20);
                 viewable_particles[loaded_line_head][idx].get()->bake_level = 0.8;
                 viewable_particles[loaded_line_head][idx]->draw();
-                loaded_line_head++;
             }
         }
     }
+    
+    // draw and animate fevertime_text if fevertime
     ofSetColor(255, 255, 255);
-    //    fevertime_img.draw(xpos, 0, ofGetWidth(), ofGetHeight());
-    fevertime_img.draw(xpos, 0, ofGetWidth() + 2500, ofGetHeight());
-    if(flag_motion) {
-        fevertime_img.draw(ofGetWidth()-250, 15, 230, 70);
-
-    }
+    drawFeverText();
     
     // draw viewable lyrics
     for(int i = 0; i < viewable_particles.size(); i++){
         for(int j = 0; j < viewable_particles[i].size(); j++){
             viewable_particles[i][j]->draw();
-            //viewable_particles[i][j];
         }
     }
     
@@ -382,9 +380,7 @@ void ofApp::draw() {
         }
     }
     motionCount = contourFinder.nBlobs;
-    
-    drawCount++;
-    
+        
     // judge jump motion
     if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval && !resultTimeFlag) {
         lastJumpTime = time(NULL);
@@ -407,7 +403,6 @@ void ofApp::draw() {
         }
         ofSetColor(255,255,255);
         area_images[img_index].draw((ofGetWidth() - (area_images[img_index].getWidth() * area_img_expanded))/2, ofGetHeight() - (area_images[img_index].getHeight() * area_img_expanded), area_images[img_index].getWidth() * area_img_expanded, area_images[img_index].getHeight() * area_img_expanded);
-        feverTimeFlag = false;
     }
     
     // draw result
@@ -424,13 +419,13 @@ void ofApp::draw() {
         // drop popcone in partitioned area
         if (music.getPositionMS()  <  resultBeginTime + 10000 && music.getPositionMS() % 50 == 0) {
             for (int i = 0; i < pop_a; i++) {
-                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
+                result_viewable_particles[0].push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/6+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_b; i++) {
-                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
+                result_viewable_particles[0].push_back(getCustomObj(images, loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
             }
             for (int i = 0; i < pop_c; i++) {
-                result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
+                result_viewable_particles[0].push_back(getCustomObj(images, loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
             }
         }
         
@@ -560,7 +555,6 @@ void ofApp::resized(int w, int h){
 
 //--------------------------------------------------------------
 void ofApp::jumpPopcones(int d) {
-    
     double dx = 0,dy = 0;
     // temporary left and right are valid.
     switch (d) {
@@ -660,10 +654,31 @@ void ofApp::drawResult() {
     cupLine.addVertex(ofGetWidth()-10, ofGetHeight());
     cupLine.addVertex(10, ofGetHeight());
     cupLine.close();
-    cupLine.resize(0);
+    cupLine.resize(5);
     cup = ofPtr<ofxBox2dPolygon>(new ofxBox2dPolygon);
     cup.get()->addVertexes(cupLine);
     cup.get()->triangulatePoly(10);
     cup.get()->setPhysics(0.0, 0.5, 0.1);
     cup.get()->create(box2d.getWorld());
+}
+// -------------------------------------------------------------
+void ofApp::drawFeverText(){
+    int current_time = music.getPositionMS();
+    if(fever_text_start_time < current_time && current_time < fever_text_start_time + fever_text_animate_time){
+        // animate fever time text
+        float processed = ((float)current_time - (float)fever_text_start_time) / (float)fever_text_animate_time;
+        fevertime_img.draw(
+                           ofGetWidth() - ((ofGetWidth() + (fevertime_img.getWidth() * fevertime_animating_img_expand)) * processed),
+                           (ofGetHeight()/2) - (fevertime_img.getHeight() * fevertime_animating_img_expand)/2,
+                           fevertime_img.getWidth() * fevertime_animating_img_expand,
+                           fevertime_img.getHeight() * fevertime_animating_img_expand);
+        
+    } else if (fever_text_start_time + fever_text_animate_time < current_time && current_time < fever_text_end_time){
+        // draw text [fever time] on top right
+        fevertime_img.draw(
+                           ofGetWidth() - (fevertime_img.getWidth() * fevertime_img_expand) - 10,
+                           10,
+                           fevertime_img.getWidth() * fevertime_img_expand,
+                           fevertime_img.getHeight() * fevertime_img_expand);
+    }
 }
