@@ -341,15 +341,16 @@ void ofApp::draw() {
                           cur.height + control_size_y);
             // braw fever time popcorn
             if(loopCnt % 15 == 0){
-                viewable_particles[loaded_line_head].push_back(getCustomObj(
+                int tmp_last_index = viewable_particles.size() - 1;
+                viewable_particles[tmp_last_index].push_back(getCustomObj(
                                                                images_fevertime,
                                                                loaded_line_head,
                                                                cur.x + cur.width/2,
                                                                cur.y + cur.height/2 - 150));
-                int idx = viewable_particles[loaded_line_head].size() - 1;
-                viewable_particles[loaded_line_head][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%50 - rand()%50), 20);
-                viewable_particles[loaded_line_head][idx].get()->bake_level = 0.8;
-                viewable_particles[loaded_line_head][idx]->draw();
+                int idx = viewable_particles[tmp_last_index].size() - 1;
+                viewable_particles[tmp_last_index][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%50 - rand()%50), 20);
+                viewable_particles[tmp_last_index][idx].get()->bake_level = 0.8;
+                viewable_particles[tmp_last_index][idx]->draw();
             }
         }
     }
