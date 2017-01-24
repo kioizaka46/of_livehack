@@ -99,9 +99,14 @@ void ofApp::setup() {
     textA.load("areas/text_A.png");
     textB.load("areas/text_B.png");
     textC.load("areas/text_C.png");
-    first.load("images/1st.png");
-    second.load("images/2nd.png");
-    third.load("images/3rd.png");;
+    
+    // load rank images
+    ofDirectory ranks_dir;
+    ofDisableArbTex();
+    int ranks_n = ranks_dir.listDir("ranks");
+    for (int i = 0; i < ranks_n; i++) {
+        rank_images.push_back(ofImage(ranks_dir.getPath(i)));
+    }
 }
 
 vector<shared_ptr<CustomParticle>> ofApp::getLineObj(int line_index){
@@ -233,41 +238,41 @@ void ofApp::update() {
         if(loopCnt % judgePoint == 0) finder.findHaarObjects(grayImage, 10, 10);
     }
     
-    // setup result popcones 
-    // 411 : total words
-    // 160 : full cup
-    // TODO NO, FULL_CUP_NUMBER is followed WINDOW_SIZE and POPCORN_RADIUS. please calcurate it again.
+    // result view
     if (resultBeginTime + lyricClearMarginTime < music.getPositionMS()) {
         if (!isCalcurated) {
             setupResult();
             isCalcurated = true;
         }
-        if (!resultGenerated_A && loopCnt % 8 == 0) {
+        if (!resultGenerated_A && loopCnt % drop_interval == 0) {
             result_viewable_particles.push_back(getCustomObj(images, 0, ofGetWidth()/6+ofRandom(20), 0));
             drop_count_a ++;
-            if(pop_a / 411 * 100 == drop_count_a) {
+            if(drop_end_time_ms_A < music.getPositionMS()) {
                 resultGenerated_A = true;
                 checkEnd++;
             }
         }
-        if (!resultGenerated_B && loopCnt % 12 == 0) {
+        if (!resultGenerated_B && loopCnt % drop_interval == 0) {
             result_viewable_particles.push_back(getCustomObj(images,loaded_line_head, ofGetWidth()/2+ofRandom(20), 0));
             drop_count_b ++;
-            if (area_b / 411 * 100 == drop_count_b) {
+            if (drop_end_time_ms_B < music.getPositionMS()) {
                 resultGenerated_B = true;
                 checkEnd++;
             }
         }
-        if (!resultGenerated_C && loopCnt % 10 == 0) {
+        if (!resultGenerated_C && loopCnt % drop_interval == 0) {
             result_viewable_particles.push_back(getCustomObj(images, loaded_line_head, ofGetWidth()*5/6+ofRandom(20), 0));
             drop_count_c ++;
-            if (area_c / 411 * 100 == drop_count_c) {
+            if (drop_end_time_ms_C < music.getPositionMS()) {
                 resultGenerated_C = true;
                 checkEnd++;
             }
         }
     }
+    
+    // loop count inclement for frame controll
     loopCnt++;
+    
     // sound update
     ofSoundUpdate();
 }
@@ -406,6 +411,9 @@ void ofApp::keyPressed(int key) {
     if (key == 'k') {
         music.setPositionMS(music.getPositionMS() + 1000);
     }
+    if (key == 's') {
+        cout << music.getPositionMS() << endl;
+    }
 }
 
 //--------------------------------------------------------------
@@ -513,15 +521,46 @@ void ofApp::setupResult(){
             rank["area_c"] = i + 1;
         }
     }
-    if (rank["area_a"] == 1) { rank1 = ofGetWidth()*1/6-50;}
-    else if (rank["area_b"] == 1) { rank1 = ofGetWidth()*1/2-50;}
-    else if (rank["area_c"] == 1) { rank1 = ofGetWidth()*5/6-50;}
-    if (rank["area_a"] == 2) { rank2 = ofGetWidth()*1/6-50;}
-    else if (rank["area_b"] == 2) { rank2 = ofGetWidth()*1/2-50;}
-    else if (rank["area_c"] == 2) { rank2 = ofGetWidth()*5/6-50;}
-    if (rank["area_a"] == 3) { rank3 = ofGetWidth()*1/6-50;}
-    else if (rank["area_b"] == 3) { rank3 = ofGetWidth()*1/2-50;}
-    else if (rank["area_c"] == 3) { rank3 = ofGetWidth()*5/6-50;}
+    
+    // set rank images
+    rank_img_A = rank_images[rank["area_a"] - 1];
+    rank_img_B = rank_images[rank["area_b"] - 1];
+    rank_img_C = rank_images[rank["area_c"] - 1];
+    
+    // calc drop proportion
+    double sum = area_a + area_b + area_c;
+    prop_area_A = area_a/sum;
+    prop_area_B = area_b/sum;
+    prop_area_C = area_c/sum;
+    
+    // calcurate drop end time
+    double all_time = (musicEndTime - viewableRankTime) - (finalLyricTime + lyricClearMarginTime);
+    vector<pair<double,string> > prop_pairs;
+    double tmp_prop_A=0.0, tmp_prop_B=0.0, tmp_prop_C=0.0;
+    prop_pairs.push_back(make_pair(prop_area_A, "area_a"));
+    prop_pairs.push_back(make_pair(prop_area_B, "area_b"));
+    prop_pairs.push_back(make_pair(prop_area_C, "area_c"));
+    sort(prop_pairs.begin(),prop_pairs.end());
+    reverse(prop_pairs.begin(),prop_pairs.end());
+    for(int i = 0; i < 3 ; i++) {
+        if (prop_pairs[i].second == "area_a") {
+            for(int j = i; j < 3; j++){
+                tmp_prop_A += prop_pairs[j].first;
+            }
+        } else if (prop_pairs[i].second == "area_b") {
+            for(int j = i; j < 3; j++){
+                tmp_prop_B += prop_pairs[j].first;
+            }
+        } else if (prop_pairs[i].second == "area_c") {
+            for(int j = i; j < 3; j++){
+                tmp_prop_C += prop_pairs[j].first;
+            }
+        }
+    }
+
+    drop_end_time_ms_A = (finalLyricTime + lyricClearMarginTime) + (all_time * tmp_prop_A);
+    drop_end_time_ms_B = (finalLyricTime + lyricClearMarginTime) + (all_time * tmp_prop_B);
+    drop_end_time_ms_C = (finalLyricTime + lyricClearMarginTime) + (all_time * tmp_prop_C);
     
     // make frames
     // area A
@@ -569,9 +608,6 @@ void ofApp::drawResult() {
     }
     
     // draw texts for rank
-    first.draw(rank1, 120, 100, 70);
-    second.draw(rank2, 120, 100, 70);
-    third.draw(rank3, 120, 100, 70);
     ofSetColor(255, 255, 255, 255);
     yaneA.draw(10, 0, 320, 100);
     yaneB.draw(ofGetWidth()/3, 0, 320, 100);
@@ -581,10 +617,14 @@ void ofApp::drawResult() {
     textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
     
     // draw ranking image
-    if  (checkEnd == 3) {
-        first.draw(rank1, 120, 100, 70);
-        second.draw(rank2, 120, 100, 70);
-        third.draw(rank3, 120, 100, 70);
+    if (drop_end_time_ms_A + 500 < music.getPositionMS()){
+        rank_img_A.draw(ofGetWidth()*1/6-50, ofGetHeight()/2-20,100,100);
+    }
+    if (drop_end_time_ms_B + 500 < music.getPositionMS()){
+        rank_img_B.draw(ofGetWidth()*1/2-50, ofGetHeight()/2-20,100,100);
+    }
+    if (drop_end_time_ms_C + 500 < music.getPositionMS()){
+        rank_img_C.draw(ofGetWidth()*5/6-50, ofGetHeight()/2-20,100,100);
     }
 }
 // -------------------------------------------------------------
