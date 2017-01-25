@@ -18,11 +18,13 @@ double getDistance(pair<double,double> point,pair<double,double> lastPoint) {
 
 int motionIndex(pair<double,double> point,pair<double,double> lastPoint) {
     
-    // left
-    if(point.first-lastPoint.first > 0) return 3;
-    // right
-    return 4;
-    
+    if(abs(point.first-lastPoint.first) > abs(point.second-lastPoint.second)) {
+        // left
+        if(point.first-lastPoint.first > 0) return 3;
+        // right
+        return 4;
+    }
+    return 2;
 }
 
 int motionVector(ofxCvContourFinder const& contourFinder,ofxCvContourFinder const& lastContourFinder) {
