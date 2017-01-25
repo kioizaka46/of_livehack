@@ -67,7 +67,7 @@ void ofApp::setup() {
         }
     }
     vidGrabber.setDeviceID(0);
-    vidGrabber.setDesiredFrameRate(40);
+    vidGrabber.setDesiredFrameRate(25);
     vidGrabber.initGrabber(window_width, window_height);
     
     // load font
@@ -180,7 +180,7 @@ void ofApp::update() {
         
         // find contours which are between the size of 20 pixels and 1/3 the w*h pixels.
         // also, find holes is set to true so we will get interior contours as well....
-        contourFinder.findContours(grayDiff, 20, (width*height)/3, 10, true);  // find holes
+        contourFinder.findContours(grayDiff, 20, (width*height)/3, 100, true);  // find holes
     }
     
     // judge next lyric line started
@@ -342,7 +342,7 @@ void ofApp::draw() {
     motionCount = contourFinder.nBlobs;
 
     // judge jump motion
-    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval && !resultTimeFlag && (abs((double)ofGetElapsedTimeMillis() - (double)next_execute_time) > 1000 && !feverTimeFlag) ) {
+    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval && !resultTimeFlag) {
         lastJumpTime = time(NULL);
         int d = motionVector(contourFinder, lastContourFinder);
         jumpPopcones(d);

@@ -149,7 +149,7 @@ public:
     bool                resultGenerated_C = false;
     bool                isCalcurated = false;
     const double tracking_interval                = 1.5;
-    const double diff_param                       = 1.5;
+    const double diff_param                       = 5;
     const double number_of_object                 = 2;
     
     const double INF = (1 << 27);
