@@ -613,22 +613,23 @@ void ofApp::drawResult() {
     
     // draw texts for rank
     ofSetColor(255, 255, 255, 255);
-    yaneA.draw(10, 0, 320, 100);
-    yaneB.draw(ofGetWidth()/3, 0, 320, 100);
-    yaneC.draw(ofGetWidth()*2/3, 0, 320, 100);
-    textA.draw(ofGetWidth()*1/6-50, ofGetHeight() - 105, 150, 105);
-    textB.draw(ofGetWidth()*1/2-50, ofGetHeight() - 105, 150, 105);
-    textC.draw(ofGetWidth()*5/6-50, ofGetHeight() - 105, 150, 105);
+    double roof_width_to_height_ratio = (ofGetWidth()/3)/yaneA.getWidth();
+    yaneA.draw(0, 0, ofGetWidth()/3, yaneA.getHeight() * roof_width_to_height_ratio);
+    yaneB.draw(ofGetWidth()/3, 0, ofGetWidth()/3, yaneB.getHeight() * roof_width_to_height_ratio);
+    yaneC.draw(ofGetWidth()*2/3, 0, ofGetWidth()/3, yaneC.getHeight() * roof_width_to_height_ratio);
+    textA.draw((ofGetWidth()*1/6) - (textA.getWidth() * area_img_expanded)/2, ofGetHeight() - (textA.getHeight() * area_img_expanded), textA.getWidth() * area_img_expanded, textA.getHeight() * area_img_expanded);
+    textB.draw((ofGetWidth()*1/2) - (textB.getWidth() * area_img_expanded)/2, ofGetHeight() - (textB.getHeight() * area_img_expanded), textB.getWidth() * area_img_expanded, textB.getHeight() * area_img_expanded);
+    textC.draw((ofGetWidth()*5/6) - (textC.getWidth() * area_img_expanded)/2, ofGetHeight() - (textC.getHeight() * area_img_expanded), textC.getWidth() * area_img_expanded, textC.getHeight() * area_img_expanded);
     
     // draw ranking image
     if (drop_end_time_ms_A + 500 < music.getPositionMS()){
-        rank_img_A.draw(ofGetWidth()*1/6-50, ofGetHeight()/2-20,100,100);
+        rank_img_A.draw((ofGetWidth()*1/6) - (rank_img_A.getWidth() * ranking_text_expand)/2, (ofGetHeight()/2) - (rank_img_A.getHeight() * ranking_text_expand)/2, rank_img_A.getWidth() * ranking_text_expand, rank_img_A.getHeight() * ranking_text_expand);
     }
     if (drop_end_time_ms_B + 500 < music.getPositionMS()){
-        rank_img_B.draw(ofGetWidth()*1/2-50, ofGetHeight()/2-20,100,100);
+        rank_img_B.draw((ofGetWidth()*1/2) - (rank_img_B.getWidth() * ranking_text_expand)/2, (ofGetHeight()/2) - (rank_img_B.getHeight() * ranking_text_expand)/2, rank_img_B.getWidth() * ranking_text_expand, rank_img_B.getHeight() * ranking_text_expand);
     }
     if (drop_end_time_ms_C + 500 < music.getPositionMS()){
-        rank_img_C.draw(ofGetWidth()*5/6-50, ofGetHeight()/2-20,100,100);
+        rank_img_C.draw((ofGetWidth()*5/6) - (rank_img_C.getWidth() * ranking_text_expand)/2, (ofGetHeight()/2) - (rank_img_C.getHeight() * ranking_text_expand)/2, rank_img_C.getWidth() * ranking_text_expand, rank_img_C.getHeight() * ranking_text_expand);
     }
 }
 // -------------------------------------------------------------

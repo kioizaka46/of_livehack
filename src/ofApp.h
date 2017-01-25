@@ -170,10 +170,11 @@ public:
     ofImage rank_img_A;
     ofImage rank_img_B;
     ofImage rank_img_C;
-    const int drop_interval = 3;
+    const int drop_interval = 6;
     
     const int w_size = 1000;
     const int h_size = 800;
+    float ranking_text_expand = 0.3;
     
     // fevertime
     ofImage snow_img;
