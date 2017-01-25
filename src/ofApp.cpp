@@ -1,6 +1,7 @@
 #include "ofApp.h"
 #include "map"
 #include "algorithm"
+#include "cmath"
 using namespace std;
 
 //--------------------------------------------------------------
@@ -341,7 +342,7 @@ void ofApp::draw() {
     motionCount = contourFinder.nBlobs;
 
     // judge jump motion
-    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval && !resultTimeFlag) {
+    if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval && !resultTimeFlag && (abs((double)ofGetElapsedTimeMillis() - (double)next_execute_time) > 1000 && !feverTimeFlag) ) {
         lastJumpTime = time(NULL);
         int d = motionVector(contourFinder, lastContourFinder);
         jumpPopcones(d);
