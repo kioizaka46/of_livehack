@@ -1,7 +1,6 @@
 #include "ofApp.h"
 #include "map"
 #include "algorithm"
-#include "cmath"
 using namespace std;
 
 //--------------------------------------------------------------
@@ -67,7 +66,7 @@ void ofApp::setup() {
         }
     }
     vidGrabber.setDeviceID(0);
-    vidGrabber.setDesiredFrameRate(20);
+//    vidGrabber.setDesiredFrameRate(10);
     vidGrabber.initGrabber(window_width, window_height);
     
     // load font
@@ -144,7 +143,7 @@ shared_ptr<CustomParticle> ofApp::getCustomObj(vector<ofImage> popcorn_images, i
     // set physics
     tmp_obj->setPhysics(density, bounce, friction);
     tmp_obj->setup(box2d.getWorld(), x, y, 20);
-
+    
     return tmp_obj;
 }
 //--------------------------------------------------------------
@@ -154,7 +153,7 @@ void ofApp::update() {
     
     // thread update
     threadUpdate();
-
+    
     // camera captured
     bool bNewFrame = false;
     vidGrabber.update();
@@ -164,7 +163,7 @@ void ofApp::update() {
     resultTimeFlag      = music.getPositionMS() > resultBeginTime;
     resultTimeFlagment  = music.getPositionMS() < resultBeginTime;
     feverTimeFlag       = music.getPositionMS() > feverBeginTime && music.getPositionMS() < feverEndTime;
-   
+    
     if (bNewFrame){
         colorImg.setFromPixels(vidGrabber.getPixels());
         
@@ -180,7 +179,7 @@ void ofApp::update() {
         
         // find contours which are between the size of 20 pixels and 1/3 the w*h pixels.
         // also, find holes is set to true so we will get interior contours as well....
-        contourFinder.findContours(grayDiff, 20, (width*height)/3, 100, true);  // find holes
+        contourFinder.findContours(grayDiff, 20, (width*height)/3, 10, true);  // find holes
     }
     
     // judge next lyric line started
@@ -283,14 +282,16 @@ void ofApp::draw() {
     // draw camera caputured
     // TODO reverse capture image
     ofSetColor(255, 255, 255, 255 * camera_draw_opacity);
-    
+ 
     int camera_height_fixed = (double)ofGetWidth() * (double)(9.0/16.0);
     double camera_aspect_ratio = (double)ofGetHeight()/(double)camera_height_fixed;
+//    vidGrabber.draw(0,0, ofGetWidth()*camera_aspect_ratio, ofGetHeight()*camera_aspect_ratio);
     vidGrabber.draw(ofGetWidth()*camera_aspect_ratio,0, -ofGetWidth()*camera_aspect_ratio, ofGetHeight()*camera_aspect_ratio);
-    
+
     // draw snow
     ofSetLineWidth(3);
     ofNoFill();
+    
     
     // fever time face detection
     int control_size_x = 80;
@@ -300,20 +301,29 @@ void ofApp::draw() {
             // draw image on face
             ofRectangle cur = finder.blobs[i].boundingRect;
             ofSetColor(255, 255, 255);
-            snow_img.draw(
-                          cur.x - control_size_x/2,
-                          cur.y - control_size_y/2 - 50,
-                          cur.width + control_size_x,
-                          cur.height + control_size_y);
+            int height_fixed = (double)cur.width * (double)(9.0/16.0);
+            double aspect_ratio = (double)cur.height/(double)height_fixed;
+            double diff = abs(ofGetWidth()/2 - cur.x);
+            double x = ofGetWidth()/2 + ((ofGetWidth()/2>=cur.x)?diff:-diff);
+            double mir = (ofGetWidth()/2>=cur.x)?-cur.width:cur.width;
             
+            snow_img.draw(
+ //                          cur.x - control_size_x/2 + 100 + ofGetWidth()*50/(ofGetWidth()-cur.x),    //0
+ //                          cur.y - control_size_y/2 + 100,  //-50
+                       cur.x - control_size_x/2,    //0
+                       cur.y - control_size_y/2 -50,  //-50
+                           cur.width + control_size_x,
+                           cur.height + control_size_y);
+            
+            //ofGetWidth()*camera_aspect_ratio-cur.x*camera_aspect_ratio ,cur.y,-cur.width*camera_aspect_ratio,cur.height);
             // draw fever time popcorn
             if(loopCnt % 15 == 0){
                 int tmp_last_index = viewable_particles.size() - 1;
                 viewable_particles[tmp_last_index].push_back(getCustomObj(
-                                                               images_fevertime,
-                                                               loaded_line_head,
-                                                               cur.x + cur.width/2,
-                                                               cur.y + cur.height/2 - 150));
+                                                                          images_fevertime,
+                                                                          loaded_line_head,
+                                                                          cur.x + cur.width/2,
+                                                                          cur.y + cur.height/2 - 150));
                 int idx = viewable_particles[tmp_last_index].size() - 1;
                 viewable_particles[tmp_last_index][idx].get()->addRepulsionForce(cur.x + (cur.width/2 + control_size_x) + (rand()%100 - rand()%100), cur.y + (cur.height/2 + control_size_y) + (rand()%50 - rand()%50), 20);
                 viewable_particles[tmp_last_index][idx].get()->bake_level = 0.8;
@@ -340,7 +350,7 @@ void ofApp::draw() {
         }
     }
     motionCount = contourFinder.nBlobs;
-
+    
     // judge jump motion
     if(contourFinder.nBlobs > number_of_object && abs(contourFinder.nBlobs - lastContourFinder.nBlobs) > diff_param && (time(NULL) - lastJumpTime) > tracking_interval && !resultTimeFlag) {
         lastJumpTime = time(NULL);
@@ -489,14 +499,14 @@ void ofApp::threadUpdate() {
         execute_flag = true;
     }
     if(execute_flag){
-        if(rotate_degree == 0){
-            rotate_degree = 90;
+        if(rotate_degree == 90){
+            rotate_degree = 60;
             current_area_name = "A";
-        }else if(rotate_degree == 90){
-            rotate_degree = 180;
+        }else if(rotate_degree == 60){
+            rotate_degree = 120;
             current_area_name = "B";
         }else{
-            rotate_degree = 0;
+            rotate_degree = 90;
             current_area_name = "C";
         }
         servo_thread.sending(rotate_degree);
@@ -562,7 +572,7 @@ void ofApp::setupResult(){
             }
         }
     }
-
+    
     drop_end_time_ms_A = (finalLyricTime + lyricClearMarginTime) + (all_time * tmp_prop_A);
     drop_end_time_ms_B = (finalLyricTime + lyricClearMarginTime) + (all_time * tmp_prop_B);
     drop_end_time_ms_C = (finalLyricTime + lyricClearMarginTime) + (all_time * tmp_prop_C);
@@ -602,7 +612,7 @@ void ofApp::setupResult(){
     cup.get()->triangulatePoly(10);
     cup.get()->setPhysics(density, bounce, friction);
     cup.get()->create(box2d.getWorld());
-
+    
 }
 void ofApp::drawResult() {
     // TODO don't use const number, use various number.

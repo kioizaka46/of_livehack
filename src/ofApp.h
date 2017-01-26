@@ -54,7 +54,7 @@ public:
     ofxJSONElement sync_lyric_json;
     string font_file_name;
     ofxTrueTypeFontUC font;
-    int font_size               = 30;
+    int font_size               = 60;
 
     // animation
     int window_width;
@@ -93,7 +93,7 @@ public:
     float max_popcone_size = 30;
     
     // physics
-    const double density    = 0.5;
+    const double density    = 0.2;
     const double bounce     = 0.2;
     double friction         = 5.0;
     const double gravity    = 25;
