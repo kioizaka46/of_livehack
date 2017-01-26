@@ -67,7 +67,7 @@ void ofApp::setup() {
         }
     }
     vidGrabber.setDeviceID(0);
-    vidGrabber.setDesiredFrameRate(25);
+    vidGrabber.setDesiredFrameRate(20);
     vidGrabber.initGrabber(window_width, window_height);
     
     // load font
